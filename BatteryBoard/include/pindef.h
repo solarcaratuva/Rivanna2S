@@ -42,7 +42,7 @@
 #define RIGHT_TURN_EN       PB_10
 #define JTDI                PA_15
 
-#else
+
 
 // CAN
 #define MAIN_CAN_TX         NC
@@ -63,25 +63,19 @@
 #define USB_RX              NC
 #define USB_TX              NC
 
+#else
+
 // Inputs
-#define DCDC_ON             NC
-#define AUX_PLUS            NC
-#define DCDC_PLUS           NC
-#define FanTach             NC
+#define AUX_PLUS            PC_13
+#define DCDC_PLUS           PA_0
+#define FanTach             PA_2
+#define CONTACT_12          PA_1
 
 // Outputs
-#define LEFT_TURN_EN        NC
-#define LEFT_TURN_CURRENT   NC
-#define DRL_EN              NC
-#define DRL_CURRENT         NC
-#define HORN_EN             NC
-#define BMS_STROBE_CURRENT  NC
-#define BMS_STROBE_EN       NC
-#define BRAKE_LIGHT_CURRENT NC
-#define BRAKE_LIGHT_EN      NC
-#define RIGHT_TURN_CURRENT  NC
-#define RIGHT_TURN_EN       NC
-#define JTDI                NC
+#define MPPT_PRECHARGE      PB_1
+#define MOTOR_PRECHARGE     PA_7
+#define DISCHARGE_ENABLE    PA_6
+#define CHARGE_ENABLE       PA_5
 
 #endif
 
