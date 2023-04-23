@@ -69,56 +69,29 @@ void battery_precharge() {
             charge_enable.read()
         );
 
-        bool contact12_has_input = contact12_input.read();
-        bool is_precharging = charge_enable.read();
+        int relay_status = charge_enable.read();
+        int contact_status = contact12_input.read();
 
-        if (contact12_has_input || is_precharging) {
-            last_time_since_r1r2_input = chrono::steady_clock::now();
+        if(relay_status && contact_status && allow_precharge) {
+            allow_precharge = false;
+            start_precharge();
+            continue;
         }
-
-        // If we want to allow_precharge, then precharge for 30 seconds before disabling precharge.
-        if (allow_precharge) {
-            long seconds_since_r1r2_input = chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - last_time_since_r1r2_input).count();
-            if (seconds_since_r1r2_input > 30) {
+        if(!relay_status || !contact_status) {
+            bool dont_allow_charge = false;
+            chrono::steady_clock::time_point start = chrono::steady_clock::now();
+            while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
+                if(relay_status || contact_status) {
+                    dont_allow_charge = true;
+                    break;
+                }
+                ThisThread::sleep_for(PRECHARGE_PAUSE);
+            }
+            if(!dont_allow_charge) {
                 allow_precharge = true;
             }
-
-            if (!is_precharging) {
-                // Start precharge
-                start_precharge();
-            }
-
-            if (!is_precharging && !contact12_has_input) {
-                last_time_since_r1r2_input = chrono::steady_clock::now();
-            } else {
-            }
+            continue;
         }
-
-        ThisThread::sleep_for(100ms);
-
-        // int relay_status = charge_enable.read();
-        // int vbus_status = vbus.read();
-
-        // if(relay_status && vbus_status && allow_precharge) {
-        //     allow_precharge = false;
-        //     start_precharge();
-        //     continue;
-        // }a
-        // if(!relay_status || !vbus) {
-        //     bool dont_allow_charge = false;
-        //     chrono::steady_clock::time_point start = chrono::steady_clock::now();
-        //     while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
-        //         if(relay_status || vbus) {
-        //             dont_allow_charge = true;
-        //             break;
-        //         }
-        //         ThisThread::sleep_for(PRECHARGE_PAUSE);
-        //     }
-        //     if(!dont_allow_charge) {
-        //         allow_precharge = true;
-        //     }
-        //     continue;
-        // }
     }
     
 }
