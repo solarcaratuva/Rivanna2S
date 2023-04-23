@@ -51,8 +51,6 @@ void battery_precharge() {
             charge_enable.read()
         );
 
-        ThisThread::sleep_for(100ms);
-
         int relay_status = charge_enable.read();
         int contact_status = contact12_input.read();
 
