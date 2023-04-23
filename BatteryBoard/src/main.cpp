@@ -35,29 +35,37 @@ void start_precharge() { //Enables switch to start precharging
 
 void battery_precharge() { 
     while (true) {
-        int relay_status = charge_enable.read();
-        int vbus_status = vbus.read();
+        printf(
+            "aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d\n",
+            aux_input.read(),
+            dcdc_input.read(),
+            fantech_input.read(),
+            contact12_input.read()
+        );
 
-        if(relay_status && vbus_status && allow_precharge) {
-            allow_precharge = false;
-            start_precharge();
-            continue;
-        }
-        if(!relay_status || !vbus) {
-            bool dont_allow_charge = false;
-            chrono::steady_clock::time_point start = chrono::steady_clock::now();
-            while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
-                if(relay_status || vbus) {
-                    dont_allow_charge = true;
-                    break;
-                }
-                ThisThread::sleep_for(PRECHARGE_PAUSE);
-            }
-            if(!dont_allow_charge) {
-                allow_precharge = true;
-            }
-            continue;
-        }
+        // int relay_status = charge_enable.read();
+        // int vbus_status = vbus.read();
+
+        // if(relay_status && vbus_status && allow_precharge) {
+        //     allow_precharge = false;
+        //     start_precharge();
+        //     continue;
+        // }
+        // if(!relay_status || !vbus) {
+        //     bool dont_allow_charge = false;
+        //     chrono::steady_clock::time_point start = chrono::steady_clock::now();
+        //     while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
+        //         if(relay_status || vbus) {
+        //             dont_allow_charge = true;
+        //             break;
+        //         }
+        //         ThisThread::sleep_for(PRECHARGE_PAUSE);
+        //     }
+        //     if(!dont_allow_charge) {
+        //         allow_precharge = true;
+        //     }
+        //     continue;
+        // }
     }
     
 }
