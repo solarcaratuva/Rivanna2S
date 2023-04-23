@@ -3,6 +3,18 @@
 
 #ifdef TARGET_UVA_SOLAR_CAR
 
+// Inputs
+#define AUX_PLUS            PC_13
+#define DCDC_PLUS           PA_0
+#define FanTech             PA_2
+#define CONTACT_12          PA_1
+
+// Outputs
+#define MPPT_PRECHARGE      PB_1
+#define MOTOR_PRECHARGE     PA_7
+#define DISCHARGE_ENABLE    PA_6
+#define CHARGE_ENABLE       PA_5
+
 // // CAN
 // #define MAIN_CAN_TX         PB_13
 // #define MAIN_CAN_RX         PB_12
@@ -66,16 +78,16 @@
 #else
 
 // Inputs
-#define AUX_PLUS            PC_13
-#define DCDC_PLUS           PA_0
-#define FanTach             PA_2
-#define CONTACT_12          PA_1
+#define AUX_PLUS            NC
+#define DCDC_PLUS           NC
+#define FanTech             NC
+#define CONTACT_12          NC
 
 // Outputs
-#define MPPT_PRECHARGE      PB_1
-#define MOTOR_PRECHARGE     PA_7
-#define DISCHARGE_ENABLE    PA_6
-#define CHARGE_ENABLE       PA_5
+#define MPPT_PRECHARGE      NC
+#define MOTOR_PRECHARGE     NC
+#define DISCHARGE_ENABLE    NC
+#define CHARGE_ENABLE       NC
 
 #endif
 
