@@ -20,17 +20,35 @@ DigitalIn dcdc_input(DCDC_PLUS);
 DigitalIn fantech_input(FanTech);
 DigitalIn contact12_input(CONTACT_12);
 
+/*
+Everything needs to be precharged: Both discharge and charge (they are current in opposite directions)
+MPPT precharge must be enabled before the motor can be discharged
+Motor precharge must be enabled before the motor can be charged
+Precharge must happen when the car is turned on and if the discharge/charge have been disabled for some time (30s)
+*/
+
+// Charge
 DigitalOut mppt_precharge(MPPT_PRECHARGE);
-DigitalOut motor_precharge(MOTOR_PRECHARGE);
 DigitalOut discharge_enable(DISCHARGE_ENABLE);
+// Discharge
+DigitalOut motor_precharge(MOTOR_PRECHARGE);
 DigitalOut charge_enable(CHARGE_ENABLE);
 
 Thread precharge_check;
 bool allow_precharge = true;
+std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 
-
-void start_precharge() { //Enables switch to start precharging
+// Enables switch to start precharging
+void start_precharge() {
     charge_enable = true;
+    mppt_precharge = true;
+    motor_precharge = true;
+}
+
+void stop_precharge() {
+    charge_enable = false;
+    mppt_precharge = false;
+    motor_precharge = false;
 }
 
 void battery_precharge() {
@@ -51,6 +69,31 @@ void battery_precharge() {
             charge_enable.read()
         );
 
+        bool contact12_has_input = contact12_input.read();
+        bool is_precharging = charge_enable.read();
+
+        if (contact12_has_input || is_precharging) {
+            last_time_since_r1r2_input = chrono::steady_clock::now();
+        }
+
+        // If we want to allow_precharge, then precharge for 30 seconds before disabling precharge.
+        if (allow_precharge) {
+            long seconds_since_r1r2_input = chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - last_time_since_r1r2_input).count();
+            if (seconds_since_r1r2_input > 30) {
+                allow_precharge = true;
+            }
+
+            if (!is_precharging) {
+                // Start precharge
+                start_precharge();
+            }
+
+            if (!is_precharging && !contact12_has_input) {
+                last_time_since_r1r2_input = chrono::steady_clock::now();
+            } else {
+            }
+        }
+
         ThisThread::sleep_for(100ms);
 
         // int relay_status = charge_enable.read();
@@ -60,7 +103,7 @@ void battery_precharge() {
         //     allow_precharge = false;
         //     start_precharge();
         //     continue;
-        // }
+        // }a
         // if(!relay_status || !vbus) {
         //     bool dont_allow_charge = false;
         //     chrono::steady_clock::time_point start = chrono::steady_clock::now();
