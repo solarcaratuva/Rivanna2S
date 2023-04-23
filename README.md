@@ -1,6 +1,6 @@
-# Rivanna2
+# Rivanna2S
 
-Embedded system code for Rivanna 2
+Embedded system code for Rivanna 2S
 
 ## Development
 The recommended approach for development is to use the [rivanna2-env](https://github.com/orgs/solarcaratuva/packages/container/package/rivanna2-env) container. It contains all of the necessary tools to build the firmware for each board. 
