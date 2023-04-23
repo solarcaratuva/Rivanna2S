@@ -42,7 +42,7 @@
 #define RIGHT_TURN_EN       PB_10
 #define JTDI                PA_15
 
-#else
+
 
 // CAN
 #define MAIN_CAN_TX         NC
@@ -62,6 +62,8 @@
 // USB
 #define USB_RX              NC
 #define USB_TX              NC
+
+#else
 
 // Inputs
 #define AUX_PLUS            PC_13
