@@ -37,6 +37,12 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
+/*
+A lot of the outputs are active low. However, this might be confusing to read.
+*/
+const bool ACTIVELOW_HIGH = false;
+const bool ACTIVELOW_LOW = true;
+
 // Input reading is done separately from flash loop
 void read_inputs() {
     flashHazards = false;
@@ -54,18 +60,18 @@ void signalFlashHandler() {
         read_inputs();
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = true;
-            leftTurnSignal = true;
+            rightTurnSignal = ACTIVELOW_HIGH;
+            leftTurnSignal = ACTIVELOW_HIGH;
         } else if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = false;
+            rightTurnSignal = ACTIVELOW_LOW;
         } else {
-            leftTurnSignal = false;
-            rightTurnSignal = false;
+            leftTurnSignal = ACTIVELOW_LOW;
+            rightTurnSignal = ACTIVELOW_LOW;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
