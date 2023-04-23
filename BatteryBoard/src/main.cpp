@@ -33,15 +33,25 @@ void start_precharge() { //Enables switch to start precharging
     charge_enable = true;
 }
 
-void battery_precharge() { 
+void battery_precharge() {
     while (true) {
         printf(
-            "aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d\n",
+            "aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d; ",
             aux_input.read(),
             dcdc_input.read(),
             fantech_input.read(),
             contact12_input.read()
         );
+
+        printf(
+            "mppt_precharge: %d; motor_precharge: %d; discharge_enable: %d; charge_enable: %d\n",
+            mppt_precharge.read(),
+            motor_precharge.read(),
+            discharge_enable.read(),
+            charge_enable.read()
+        );
+
+        ThisThread::sleep_for(100ms);
 
         // int relay_status = charge_enable.read();
         // int vbus_status = vbus.read();
