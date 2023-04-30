@@ -13,7 +13,7 @@
 #define MAIN_LOOP_PERIOD   1s
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
-#define PRECHARGE_PAUSE    100ms
+#define CHARGE_PAUSE    100ms
 
 DigitalIn aux_input(AUX_PLUS);
 DigitalIn dcdc_input(DCDC_PLUS);
@@ -37,21 +37,22 @@ DigitalOut charge_enable(CHARGE_ENABLE);
 Thread precharge_check;
 Thread discharge_check;
 bool allow_precharge = true;
+bool allow_discharge = true;
 std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 int charge_relay_status;
 int discharge_relay_status;
 
 // Enables switch to start precharging
 void start_precharge() {
-    charge_enable = true;
-    mppt_precharge = true;
-    motor_precharge = true;
+    charge_enable.write(1);
+    mppt_precharge.write(1);
+    motor_precharge.write(1);
 }
 
 void start_discharge() {
-    charge_enable = false;
-    mppt_precharge = false;
-    motor_precharge = false;
+    charge_enable.write(0);
+    mppt_precharge.write(0);
+    motor_precharge.write(0);
 }
 
 
@@ -88,7 +89,7 @@ void battery_precharge() {
                     dont_allow_charge = true;
                     break;
                 }
-                ThisThread::sleep_for(PRECHARGE_PAUSE);
+                ThisThread::sleep_for(CHARGE_PAUSE);
             }
             if(!dont_allow_charge) {
                 allow_precharge = true;
@@ -121,9 +122,9 @@ void battery_discharge() {
 
         int contact_status = contact12_input.read();
 
-        if(discharge_relay_status && contact_status && allow_precharge) {
-            allow_precharge = false;
-            start_precharge();
+        if(discharge_relay_status && contact_status && allow_discharge) {
+            allow_discharge = false;
+            start_discharge();
             continue;
         }
         if(!discharge_relay_status || !contact_status) {
@@ -134,10 +135,10 @@ void battery_discharge() {
                     dont_allow_charge = true;
                     break;
                 }
-                ThisThread::sleep_for(PRECHARGE_PAUSE);
+                ThisThread::sleep_for(CHARGE_PAUSE);
             }
             if(!dont_allow_charge) {
-                allow_precharge = true;
+                allow_discharge = true;
             }
             continue;
         }
