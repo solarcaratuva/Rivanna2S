@@ -5,14 +5,14 @@
 
 #define LEFT_TURN_IN PB_1 // 17
 #define RIGHT_TURN_IN PB_14 // 28
-#define HAZARDS_IN PC_13 // 2
-#define MECHANICAL_BRAKE_IN PA_9 // 31
+#define HAZARDS_IN PA_2 // 2
+#define MECHANICAL_BRAKE_IN PB_15 // 31
 #define REGEN_IN PB_15 // 29
 #define THROTTLE_VALUE_IN PB_13 // 27
 #define FORWARD_REVERSE_IN PB_2 // 18
 
-#define LEFT_TURN_OUT PA_0 // 8
-#define RIGHT_TURN_OUT PA_1 // 9
+#define LEFT_TURN_OUT PA_8 // 8
+#define RIGHT_TURN_OUT PA_9 // 9
 #define BRAKE_LIGHTS_OUT PB_12 // 26
 #define DRO_OUT PB_11 // 25
 #define BMS_STROBE_OUT PB_0 // 16
