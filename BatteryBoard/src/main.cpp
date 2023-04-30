@@ -13,7 +13,7 @@
 #define MAIN_LOOP_PERIOD   1s
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
-#define PRECHARGE_PAUSE    100ms
+#define CHARGE_PAUSE    100ms
 
 DigitalIn aux_input(AUX_PLUS);
 DigitalIn dcdc_input(DCDC_PLUS);
@@ -35,21 +35,26 @@ DigitalOut motor_precharge(MOTOR_PRECHARGE);
 DigitalOut charge_enable(CHARGE_ENABLE);
 
 Thread precharge_check;
+Thread discharge_check;
 bool allow_precharge = true;
+bool allow_discharge = true;
 std::chrono::steady_clock::time_point last_time_since_r1r2_input;
+int charge_relay_status;
+int discharge_relay_status;
 
 // Enables switch to start precharging
 void start_precharge() {
-    charge_enable = true;
-    mppt_precharge = true;
-    motor_precharge = true;
+    charge_enable.write(1);
+    mppt_precharge.write(1);
+    motor_precharge.write(1);
 }
 
-void stop_precharge() {
-    charge_enable = false;
-    mppt_precharge = false;
-    motor_precharge = false;
+void start_discharge() {
+    charge_enable.write(0);
+    mppt_precharge.write(0);
+    motor_precharge.write(0);
 }
+
 
 void battery_precharge() {
     while (true) {
@@ -69,23 +74,22 @@ void battery_precharge() {
             charge_enable.read()
         );
 
-        int relay_status = charge_enable.read();
         int contact_status = contact12_input.read();
 
-        if(relay_status && contact_status && allow_precharge) {
+        if(charge_relay_status && contact_status && allow_precharge) {
             allow_precharge = false;
             start_precharge();
             continue;
         }
-        if(!relay_status || !contact_status) {
+        if(!charge_relay_status || !contact_status) {
             bool dont_allow_charge = false;
             chrono::steady_clock::time_point start = chrono::steady_clock::now();
             while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
-                if(relay_status || contact_status) {
+                if(charge_relay_status || contact_status) {
                     dont_allow_charge = true;
                     break;
                 }
-                ThisThread::sleep_for(PRECHARGE_PAUSE);
+                ThisThread::sleep_for(CHARGE_PAUSE);
             }
             if(!dont_allow_charge) {
                 allow_precharge = true;
@@ -97,6 +101,51 @@ void battery_precharge() {
 }
 
 
+
+void battery_discharge() {
+    while (true) {
+        printf(
+            "aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d; ",
+            aux_input.read(),
+            dcdc_input.read(),
+            fantech_input.read(),
+            contact12_input.read()
+        );
+
+        printf(
+            "mppt_precharge: %d; motor_precharge: %d; discharge_enable: %d; charge_enable: %d\n",
+            mppt_precharge.read(),
+            motor_precharge.read(),
+            discharge_enable.read(),
+            charge_enable.read()
+        );
+
+        int contact_status = contact12_input.read();
+
+        if(discharge_relay_status && contact_status && allow_discharge) {
+            allow_discharge = false;
+            start_discharge();
+            continue;
+        }
+        if(!discharge_relay_status || !contact_status) {
+            bool dont_allow_charge = false;
+            chrono::steady_clock::time_point start = chrono::steady_clock::now();
+            while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
+                if(discharge_relay_status || contact_status) {
+                    dont_allow_charge = true;
+                    break;
+                }
+                ThisThread::sleep_for(CHARGE_PAUSE);
+            }
+            if(!dont_allow_charge) {
+                allow_discharge = true;
+            }
+            continue;
+        }
+    }
+    
+}
+
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
@@ -104,12 +153,21 @@ int main() {
     // signalFlashThread.start(signalFlashHandler);
     // peripheral_error_thread.start(peripheral_error_handler);
     precharge_check.start(battery_precharge);
+    discharge_check.start(battery_discharge);
 
     while (true) {
         log_debug("Main thread loop");
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
+}
+
+void BPSCANInterface::handle(BPSPackInformation *can_struct) {
+    charge_relay_status = can_struct->charge_relay_status;
+}
+
+void BPSCANInterface::handle(BPSPackInformation *can_struct) {
+    discharge_relay_status = can_struct->charge_relay_status;
 }
 
 // void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
