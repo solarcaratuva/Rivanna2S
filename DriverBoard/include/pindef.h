@@ -11,6 +11,10 @@
 #define THROTTLE_VALUE_IN PB_13 // 27
 #define FORWARD_REVERSE_IN PB_2 // 18
 
+#define CAN_RX             PA_11 // Rx for MCU
+#define CAN_TX             PA_12
+#define CAN_STBY           PB_10 // Digital Output
+
 #define LEFT_TURN_OUT PA_0 // 8
 #define RIGHT_TURN_OUT PA_1 // 9
 #define BRAKE_LIGHTS_OUT PB_12 // 26

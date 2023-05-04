@@ -135,7 +135,7 @@ int main() {
                 throttleValue = 0;
                 regenValue = 0;
             } else {
-                throttleValue = -56.27610464*pow(156-(i-100),0.3) + 256;
+                throttleValue = -56.27610464*pow(156-(pedalValue-100),0.3) + 256;
                 regenValue = 0;
             }
         } else {
@@ -160,5 +160,5 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
 }
 void DriverCANInterface::handle(BPSError *can_struct) {
-    bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->CANBUS_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
