@@ -58,6 +58,8 @@ A lot of the outputs are active low. However, this might be confusing to read.
 const bool ACTIVELOW_ON = false;
 const bool ACTIVELOW_OFF = true;
 
+bool flashHazardsState = false;
+
 uint16_t readThrottle() {
     float adjusted_throttle_input =
         ((throttle.read_voltage() - THROTTLE_LOW_VOLTAGE -
@@ -75,6 +77,9 @@ uint16_t readThrottle() {
 
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
+    if(flashHazards) {
+        flashHazardsState = !flashHazardsState;
+    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
@@ -88,7 +93,7 @@ void signalFlashHandler() {
         if (brakeLightsEnabled) {
             rightTurnSignal = ACTIVELOW_ON;
             leftTurnSignal = ACTIVELOW_ON;
-        } else if (flashHazards) {
+        } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
