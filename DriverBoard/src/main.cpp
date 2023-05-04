@@ -47,10 +47,15 @@ A lot of the outputs are active low. However, this might be confusing to read.
 const bool ACTIVELOW_ON = false;
 const bool ACTIVELOW_OFF = true;
 
+bool flashHazardsState = false;
+
 
 // Input reading is done separately from flash loop
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
+    if(flashHazards) {
+        flashHazardsState = !flashHazardsState;
+    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
@@ -63,7 +68,7 @@ void signalFlashHandler() {
         if (brakeLightsEnabled) {
             rightTurnSignal = ACTIVELOW_ON;
             leftTurnSignal = ACTIVELOW_ON;
-        } else if (flashHazards) {
+        } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
