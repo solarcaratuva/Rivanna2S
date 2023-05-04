@@ -21,15 +21,22 @@
 
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
+bool regenEnabled = false;
+bool rpmPositive = false;
+bool strobeEnabled = false;
 Thread signalFlashThread;
 
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
+DigitalOut dro(DRO_OUT);
+DigitalOut bms_strobe(BMS_STROBE_OUT);
 
 DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
 DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
+DigitalIn hazardsSwitch(HAZARDS_IN);
+DigitalIn regenSwitch(REGEN_IN);
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -43,16 +50,19 @@ A lot of the outputs are active low. However, this might be confusing to read.
 const bool ACTIVELOW_HIGH = false;
 const bool ACTIVELOW_LOW = true;
 
+
 // Input reading is done separately from flash loop
 void read_inputs() {
-    flashHazards = false;
-    if (brake_lights.read()) {
-        brakeLightsEnabled = true;
-    } else {
-        brakeLightsEnabled = false;
-    }
+    flashHazards = hazardsSwitch.read();
+//    if (brake_lights.read()) {
+//        brakeLightsEnabled = true;
+//    } else {
+//        brakeLightsEnabled = false;
+//    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
+    regenEnabled = regenSwitch.read();
+    brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
 }
 
 void signalFlashHandler() {
@@ -77,7 +87,7 @@ void signalFlashHandler() {
     }
 }
 
-/*
+
 AnalogIn fan_tach(FanTach);
 AnalogIn brake_light_current(BRAKE_LIGHT_CURRENT);
 AnalogIn headlight_current(DRL_CURRENT);
@@ -88,15 +98,16 @@ Thread peripheral_error_thread;
 
 BPSRelayController bps_relay_controller(HORN_EN, DRL_EN, AUX_PLUS,
                                         BMS_STROBE_EN);
-*/
+
 
 // Comment this out for now.
-/*
+
 void peripheral_error_handler() {
     PowerAuxError msg;
     while (true) {
         msg.bps_strobe_error = (bms_strobe_current.read_u16() < 1000 &&
                                 bps_relay_controller.bps_fault_indicator_on());
+        bms_strobe = msg.bps_strobe_error;
         msg.brake_light_error =
             (brake_light_current.read_u16() < 1000 && brake_lights.read());
         msg.fan_error = (fan_tach.read_u16() < 1000);
@@ -110,14 +121,16 @@ void peripheral_error_handler() {
         ThisThread::sleep_for(ERROR_CHECK_PERIOD);
     }
 }
-*/
+
 
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
 
     signalFlashThread.start(signalFlashHandler);
-    // peripheral_error_thread.start(peripheral_error_handler);
+    peripheral_error_thread.start(peripheral_error_handler);
+
+    dro = true;
 
     while (true) {
         log_debug("Main thread loop");
@@ -127,7 +140,7 @@ int main() {
 }
 
 // Comment out CAN-related code for now.
-/*
+
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     if (LOG_ECU_POWERAUX_COMMANDS) can_struct->log(LOG_INFO);
 
@@ -142,6 +155,7 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
 
 void PowerAuxCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     can_struct->log(LOG_INFO);
+    rpmPositive = can_struc->motor_rpm > 0;
 }
 
 void PowerAuxCANInterface::handle(ECUMotorCommands *can_struct) {
@@ -175,4 +189,3 @@ void BPSCANInterface::handle(BPSCellTemperature *can_struct) {
 
     vehicle_can_interface.send(can_struct);
 }
-*/
