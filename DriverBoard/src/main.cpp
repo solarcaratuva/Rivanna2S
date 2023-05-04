@@ -19,7 +19,9 @@
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
-bool flashHazards, flashLSignal, flashRSignal = false;
+bool flashLSignal, flashRSignal = false;
+bool prevHazardsButtonState = false;
+bool isFlashingHazards = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
@@ -53,7 +55,12 @@ const bool ACTIVELOW_LOW = true;
 
 // Input reading is done separately from flash loop
 void read_inputs() {
-    flashHazards = hazardsSwitch.read();
+    bool newHazardState = hazardsSwitch.read();
+    bool flashRising = newHazardState && !prevHazardsButtonState;
+    if(flashRising) {
+        isFlashingHazards = !isFlashingHazards;
+    }
+    prevHazardsButtonState = newHazardState;
 //    if (brake_lights.read()) {
 //        brakeLightsEnabled = true;
 //    } else {
@@ -72,7 +79,7 @@ void signalFlashHandler() {
         if (brakeLightsEnabled) {
             rightTurnSignal = ACTIVELOW_HIGH;
             leftTurnSignal = ACTIVELOW_HIGH;
-        } else if (flashHazards) {
+        } else if (isFlashingHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
