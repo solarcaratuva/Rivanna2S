@@ -1,5 +1,5 @@
-// #include "BPSCANInterface.h"
-// #include "BPSRelayController.h"
+#include "BPSCANInterface.h"
+#include "BPSRelayController.h"
 #include "DigitalOut.h"
 // #include "PowerAuxCANInterface.h"
 #include "Printing.h"
@@ -164,10 +164,7 @@ int main() {
 
 void BPSCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
-}
-
-void BPSCANInterface::handle(BPSPackInformation *can_struct) {
-    discharge_relay_status = can_struct->charge_relay_status;
+    discharge_relay_status = can_struct->discharge_relay_status;
 }
 
 // void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {

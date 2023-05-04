@@ -14,5 +14,6 @@
 		"vector": "cpp",
 		"mstd_atomic": "cpp",
 		"mstd_iterator": "cpp"
-	}
+	},
+	"C_Cpp.errorSquiggles": "disabled"
 }
