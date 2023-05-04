@@ -17,6 +17,7 @@
 #define DRO_OUT PB_11 // 25
 #define BMS_STROBE_OUT PB_0 // 16
 #define THROTTLE PB_13 // 27
+#define REVERSE_IN PB_2 // 18
 
 // #define BRAKE_LIGHT_IN PB_13
 // #define LEFT_TURN_LIGHT_IN PA_0

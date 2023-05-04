@@ -1,6 +1,8 @@
 #include "DriverCANInterface.h"
 #include "Printing.h"
 #include "ThisThread.h"
+#include "ECUCANStructs.h"
+#include "MainCANInterface.h"
 #include "log.h"
 #include "pindef.h"
 #include <mbed.h>
@@ -24,6 +26,7 @@ bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
+bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
 
@@ -38,7 +41,10 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
+DigitalIn reverseSwitch(REVERSE_IN);
 AnalogIn throttle(THROTTLE, 5.0f);
+
+MainCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);;
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -72,6 +78,7 @@ void read_inputs() {
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
+    reverseEnabled = reverseSwitch.read();
     brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
 }
 
@@ -108,7 +115,37 @@ int main() {
         log_debug("Main thread loop");
         read_inputs();
 
-        
+        ECUMotorCommands to_motor;
+
+        uint16_t pedalValue = readThrottle();
+        uint16_t regenValue;    
+        uint16_t throttleValue;
+
+        if (regenEnabled) {
+            // One pedal drive (tesla style)
+            if (pedalValue <= 50) {
+                throttleValue = 0;
+                regenValue = 79.159 * pow(50-pedalValue, 0.3);
+            } else if (pedalValue < 100) {
+                throttleValue = 0;
+                regenValue = 0;
+            } else {
+                throttleValue = -56.27610464*pow(156-(i-100),0.3) + 256;
+                regenValue = 0;
+            }
+        } else {
+            throttleValue = pedalValue;
+            regenValue = 0;
+        }
+      
+        to_motor.throttle = throttleValue;
+        to_motor.regen = regenValue;
+
+        to_motor.forward_en = !reverseEnabled;
+        to_motor.reverse_en = reverseEnabled; 
+
+        to_motor.motor_on = true;
+        vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
