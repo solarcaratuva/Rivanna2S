@@ -11,6 +11,10 @@
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define IDLE_PERIOD        100ms
+#define THROTTLE_LOW_VOLTAGE         0.66
+#define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
+#define THROTTLE_HIGH_VOLTAGE        3.08
+#define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
@@ -34,6 +38,7 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
+AnalogIn throttle(THROTTLE, 5.0f);
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -47,8 +52,21 @@ A lot of the outputs are active low. However, this might be confusing to read.
 const bool ACTIVELOW_ON = false;
 const bool ACTIVELOW_OFF = true;
 
+uint16_t readThrottle() {
+    float adjusted_throttle_input =
+        ((throttle.read_voltage() - THROTTLE_LOW_VOLTAGE -
+          THROTTLE_LOW_VOLTAGE_BUFFER) /
+         (THROTTLE_HIGH_VOLTAGE - THROTTLE_HIGH_VOLTAGE_BUFFER -
+          THROTTLE_LOW_VOLTAGE - THROTTLE_LOW_VOLTAGE_BUFFER));
+    if (adjusted_throttle_input <= 0.0f) {
+        return 0;
+    } else if (adjusted_throttle_input >= 1.0f) {
+        return 256;
+    } else {
+        return (uint16_t)(adjusted_throttle_input * 256.0);
+    }
+}
 
-// Input reading is done separately from flash loop
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
     flashLSignal = leftTurnSwitch.read();
@@ -89,6 +107,16 @@ int main() {
     while (true) {
         log_debug("Main thread loop");
         read_inputs();
+
+        
+
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
+}
+
+void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
+    rpmPositive = can_struct->motor_rpm > 0;
+}
+void DriverCANInterface::handle(BPSError *can_struct) {
+    // turn on bms strobe if anything goes wrong
 }
