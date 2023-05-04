@@ -136,27 +136,6 @@ int main() {
 
 // Comment out CAN-related code for now.
 
-void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
-    if (LOG_ECU_POWERAUX_COMMANDS) can_struct->log(LOG_INFO);
-
-    brake_lights = can_struct->brake_lights;
-
-    flashLSignal = can_struct->left_turn_signal;
-    flashRSignal = can_struct->right_turn_signal;
-    flashHazards = can_struct->hazards;
-
-    signalFlashThread.flags_set(0x1);
-}
-
-void PowerAuxCANInterface::handle(MotorControllerPowerStatus *can_struct) {
-    can_struct->log(LOG_INFO);
-    rpmPositive = can_struc->motor_rpm > 0;
-}
-
-void PowerAuxCANInterface::handle(ECUMotorCommands *can_struct) {
-    can_struct->log(LOG_INFO);
-}
-
 void BPSCANInterface::handle(BPSPackInformation *can_struct) {
     if (LOG_BPS_PACK_INFORMATION) can_struct->log(LOG_INFO);
 
