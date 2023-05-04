@@ -47,18 +47,13 @@ const bool LOG_BPS_CELL_TEMPERATURE = false;
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
 */
-const bool ACTIVELOW_HIGH = false;
-const bool ACTIVELOW_LOW = true;
+const bool ACTIVELOW_ON = false;
+const bool ACTIVELOW_OFF = true;
 
 
 // Input reading is done separately from flash loop
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
-//    if (brake_lights.read()) {
-//        brakeLightsEnabled = true;
-//    } else {
-//        brakeLightsEnabled = false;
-//    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
@@ -70,18 +65,18 @@ void signalFlashHandler() {
         read_inputs();
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = ACTIVELOW_HIGH;
-            leftTurnSignal = ACTIVELOW_HIGH;
+            rightTurnSignal = ACTIVELOW_ON;
+            leftTurnSignal = ACTIVELOW_ON;
         } else if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = ACTIVELOW_LOW;
+            rightTurnSignal = ACTIVELOW_OFF;
         } else {
-            leftTurnSignal = ACTIVELOW_LOW;
-            rightTurnSignal = ACTIVELOW_LOW;
+            leftTurnSignal = ACTIVELOW_OFF;
+            rightTurnSignal = ACTIVELOW_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
