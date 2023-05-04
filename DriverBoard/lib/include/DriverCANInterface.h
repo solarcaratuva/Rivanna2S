@@ -2,7 +2,8 @@
 #define DRIVER_CAN_INTERFACE_H
 
 #include "BPSCANStructs.h"
-#include "MotorControllerCANStrcuts.h"
+#include "MotorControllerCANStructs.h"
+#include "CANInterface.h"
 
 class DriverCANInterface : public CANInterface {
   public:

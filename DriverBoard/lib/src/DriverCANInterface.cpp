@@ -1,5 +1,5 @@
 #include "DriverCANInterface.h"
-#include "MotorControllerCANStrcuts.h"
+#include "MotorControllerCANStructs.h"
 #include "log.h"
 
 DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_pin)
@@ -18,7 +18,7 @@ void DriverCANInterface::message_handler() {
 
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);
-            log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s " message.id, message.len, message_data);
+            log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s ", message.id, message.len, message_data);
             if (message.id == BPSError_MESSAGE_ID) {
                 BPSError can_struct;
                 can_struct.deserialize(&message);
