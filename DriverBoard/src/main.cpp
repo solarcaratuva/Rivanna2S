@@ -1,7 +1,4 @@
 #include "DriverCANInterface.h"
-// #include "BPSRelayController.h"
-#include "DigitalOut.h"
-// #include "PowerAuxCANInterface.h"
 #include "Printing.h"
 #include "ThisThread.h"
 #include "log.h"
@@ -132,34 +129,4 @@ int main() {
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
-}
-
-// Comment out CAN-related code for now.
-
-void BPSCANInterface::handle(BPSPackInformation *can_struct) {
-    if (LOG_BPS_PACK_INFORMATION) can_struct->log(LOG_INFO);
-
-    bps_relay_controller.update_state(can_struct);
-
-    vehicle_can_interface.send(can_struct);
-}
-
-void BPSCANInterface::handle(BPSError *can_struct) {
-    if (LOG_BPS_ERROR) can_struct->log(LOG_INFO);
-
-    bps_relay_controller.update_state(can_struct);
-
-    vehicle_can_interface.send(can_struct);
-}
-
-void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
-    if (LOG_BPS_CELL_VOLTAGE) can_struct->log(LOG_INFO);
-
-    vehicle_can_interface.send(can_struct);
-}
-
-void BPSCANInterface::handle(BPSCellTemperature *can_struct) {
-    if (LOG_BPS_CELL_TEMPERATURE) can_struct->log(LOG_INFO);
-
-    vehicle_can_interface.send(can_struct);
 }
