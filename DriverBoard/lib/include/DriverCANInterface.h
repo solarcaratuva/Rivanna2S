@@ -2,7 +2,7 @@
 #define BPS_CAN_INTERFACE_H
 
 #include "BPSCANStructs.h"
-#include "CANInterface.h"
+#include "MotorControllerCANStrcuts.h"
 
 class BPSCANInterface : public CANInterface {
   public:
@@ -11,6 +11,7 @@ class BPSCANInterface : public CANInterface {
     void handle(BPSError *can_struct);
     void handle(BPSCellVoltage *can_struct);
     void handle(BPSCellTemperature *can_struct);
+    void handle()
 
   private:
     void message_handler() override;

@@ -1,5 +1,5 @@
 add_library(DriverBoard-lib
-    src/BPSCANInterface.cpp
+    src/DriverCANInterface.cpp
 )
 
 target_include_directories(DriverBoard-lib PUBLIC include)

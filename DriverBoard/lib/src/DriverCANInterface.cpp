@@ -1,4 +1,5 @@
 #include "BPSCANInterface.h"
+#include "MotorControllerCANStrcuts.h"
 #include "log.h"
 
 BPSCANInterface::BPSCANInterface(PinName rd, PinName td, PinName standby_pin)
