@@ -60,6 +60,7 @@ const bool ACTIVELOW_OFF = true;
 bool flashHazardsState = false;
 
 uint16_t readThrottle() {
+    log_debug("Pedal voltage: %d", throttle.read_voltage());
     float adjusted_throttle_input =
         ((throttle.read_voltage() - THROTTLE_LOW_VOLTAGE -
           THROTTLE_LOW_VOLTAGE_BUFFER) /
@@ -125,6 +126,8 @@ int main() {
         uint16_t regenValue;    
         uint16_t throttleValue;
 
+        log_debug("PEDAL_READING: %d\n", pedalValue);
+
         if (regenEnabled) {
             // One pedal drive (tesla style)
             if (pedalValue <= 50) {
@@ -149,7 +152,7 @@ int main() {
         to_motor.reverse_en = reverseEnabled; 
 
         to_motor.motor_on = true;
-        vehicle_can_interface.send(&to_motor);
+        // vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
