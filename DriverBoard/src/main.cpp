@@ -43,7 +43,7 @@ DigitalIn regenSwitch(REGEN_IN);
 DigitalIn reverseSwitch(REVERSE_IN);
 AnalogIn throttle(THROTTLE, 5.0f);
 
-DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);;
+DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
