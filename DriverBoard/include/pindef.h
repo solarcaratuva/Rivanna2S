@@ -8,7 +8,7 @@
 #define HAZARDS_IN PC_13 // 2
 #define MECHANICAL_BRAKE_IN PA_9 // 31
 #define REGEN_IN PC_6 // 29
-#define THROTTLE_VALUE_IN PB_14 // 27
+#define THROTTLE_VALUE_IN PB_13 // 27
 #define FORWARD_REVERSE_IN PB_1 // 18
 
 #define CAN_RX             PA_11 // Rx for MCU
