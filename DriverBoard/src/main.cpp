@@ -114,7 +114,7 @@ int main() {
 
     signalFlashThread.start(signalFlashHandler);
 
-    dro = true;
+    dro = ACTIVELOW_ON;
 
     while (true) {
         log_debug("Main thread loop");
