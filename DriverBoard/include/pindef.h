@@ -3,13 +3,13 @@
 
 #ifdef TARGET_UVA_SOLAR_CAR
 
-#define LEFT_TURN_IN PB_1 // 17
-#define RIGHT_TURN_IN PB_14 // 28
+#define LEFT_TURN_IN PB_0 // 17
+#define RIGHT_TURN_IN PB_15 // 28
 #define HAZARDS_IN PC_13 // 2
 #define MECHANICAL_BRAKE_IN PA_9 // 31
-#define REGEN_IN PB_15 // 29
-#define THROTTLE_VALUE_IN PB_13 // 27
-#define FORWARD_REVERSE_IN PB_2 // 18
+#define REGEN_IN PC_6 // 29
+#define THROTTLE_VALUE_IN PB_14 // 27
+#define FORWARD_REVERSE_IN PB_1 // 18
 
 #define CAN_RX             PA_11 // Rx for MCU
 #define CAN_TX             PA_12
@@ -17,11 +17,9 @@
 
 #define LEFT_TURN_OUT PA_0 // 8
 #define RIGHT_TURN_OUT PA_1 // 9
-#define BRAKE_LIGHTS_OUT PB_12 // 26
-#define DRO_OUT PB_11 // 25
-#define BMS_STROBE_OUT PB_0 // 16
-#define THROTTLE PB_13 // 27
-#define REVERSE_IN PB_2 // 18
+#define BRAKE_LIGHTS_OUT PB_13 // 26
+#define DRO_OUT PB_12 // 25
+#define BMS_STROBE_OUT PC_4 // 16
 
 // #define BRAKE_LIGHT_IN PB_13
 // #define LEFT_TURN_LIGHT_IN PA_0

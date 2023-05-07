@@ -40,8 +40,8 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
-DigitalIn reverseSwitch(REVERSE_IN);
-AnalogIn throttle(THROTTLE, 5.0f);
+DigitalIn reverseSwitch(FORWARD_REVERSE_IN);
+AnalogIn throttle(THROTTLE_VALUE_IN, 3.3f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
@@ -60,7 +60,7 @@ const bool ACTIVELOW_OFF = true;
 bool flashHazardsState = false;
 
 uint16_t readThrottle() {
-    log_debug("Pedal voltage: %d", throttle.read_voltage());
+    log_error("Pedal voltage: %d", throttle.read_voltage());
     float adjusted_throttle_input =
         ((throttle.read_voltage() - THROTTLE_LOW_VOLTAGE -
           THROTTLE_LOW_VOLTAGE_BUFFER) /
@@ -110,14 +110,14 @@ void signalFlashHandler() {
 
 int main() {
     log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
+    log_error("Start main()");
 
     signalFlashThread.start(signalFlashHandler);
 
     dro = true;
 
     while (true) {
-        log_debug("Main thread loop");
+        log_error("Main thread loop");
         read_inputs();
 
         ECUMotorCommands to_motor;
@@ -126,7 +126,7 @@ int main() {
         uint16_t regenValue;    
         uint16_t throttleValue;
 
-        log_debug("PEDAL_READING: %d\n", pedalValue);
+        log_error("PEDAL_READING: %d\n", pedalValue);
 
         if (regenEnabled) {
             // One pedal drive (tesla style)

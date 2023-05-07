@@ -33,6 +33,9 @@ typedef enum {
 } ALTx;
 
 typedef enum {
+    // CUSTOM
+    PC_6       = 0x1D,
+    PC_4       = 0x10,
 
     PA_0       = 0x00,
     PA_0_ALT0  = PA_0 | ALT0, // same pin used for alternate HW
