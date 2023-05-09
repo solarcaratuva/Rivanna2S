@@ -15,10 +15,13 @@
 #define CAN_TX             PA_12
 #define CAN_STBY           PB_10 // Digital Output
 
+#define PI_TX PB_1 // A
+#define PI_RX PB_2 // B
+
 #define LEFT_TURN_OUT PA_0 // 8
 #define RIGHT_TURN_OUT PA_1 // 9
 #define BRAKE_LIGHTS_OUT PB_12 // 26
-#define DRO_OUT PB_11 // 25
+#define DRL_OUT PB_11 // 25
 #define BMS_STROBE_OUT PB_0 // 16
 #define THROTTLE PB_13 // 27
 #define REVERSE_IN PB_2 // 18
@@ -48,7 +51,7 @@
 #define LEFT_TURN_OUT NC
 #define RIGHT_TURN_OUT NC
 #define BRAKE_LIGHTS_OUT NC
-#define DRO_OUT NC
+#define DRL_OUT NC
 #define BMS_STROBE_OUT NC
 
 #endif

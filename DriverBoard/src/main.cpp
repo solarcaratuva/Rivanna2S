@@ -17,9 +17,6 @@
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
 
-// PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
-//                                            MAIN_CAN_STBY);
-// BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
@@ -32,7 +29,7 @@ Thread signalFlashThread;
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
-DigitalOut dro(DRO_OUT);
+DigitalOut drl(DRL_OUT);
 DigitalOut bms_strobe(BMS_STROBE_OUT);
 
 DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
@@ -72,7 +69,7 @@ uint16_t readThrottle() {
     } else {
         return (uint16_t)(adjusted_throttle_input * 256.0);
     }
-}
+} // send ecu power aux command
 
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
@@ -84,6 +81,16 @@ void read_inputs() {
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
     brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
+
+    // CAN Struct sent to RaspberryPi for HUD and Telemetry
+    ECUPowerAuxCommands x;
+    x.hazards = flashHazardsState;
+    x.brake_lights = brakeLightsEnabled;
+    x.left_turn_signal = flashLSignal;
+    x.right_turn_signal = flashRSignal;
+    x.headlights = 1;
+    vehicle_can_interface.send(&x);
+
 }
 
 void signalFlashHandler() {
@@ -113,7 +120,7 @@ int main() {
 
     signalFlashThread.start(signalFlashHandler);
 
-    dro = ACTIVELOW_ON;
+    drl = ACTIVELOW_ON;
 
     while (true) {
         log_debug("Main thread loop");
