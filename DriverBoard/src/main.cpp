@@ -156,6 +156,8 @@ int main() {
         to_motor.reverse_en = reverseEnabled; 
 
         to_motor.motor_on = true;
+        to_motor.cruise_control_speed = 0;
+        to_motor.cruise_control_en = 0;
         vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);

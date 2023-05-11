@@ -27,7 +27,8 @@ int MainCANInterface::send(CANStruct *can_struct) {
 }
 
 void MainCANInterface::message_handler() {
-    while (true) {
+    while (true){
+        /*  
         ThisThread::flags_wait_all(0x1);
         CANMessage message;
         while (can.read(message)) {
@@ -96,5 +97,6 @@ void MainCANInterface::message_handler() {
                 handle(&can_struct);
             }
         }
+        */
     }
 }

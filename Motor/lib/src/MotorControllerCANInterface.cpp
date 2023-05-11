@@ -5,7 +5,7 @@
 MotorControllerCANInterface::MotorControllerCANInterface(PinName rd, PinName td,
                                                          PinName standby_pin)
     : CANInterface(rd, td, standby_pin) {
-    can.frequency(125000);
+    can.frequency(1250000);
     bus_status_thread.start(
         callback(this, &MotorControllerCANInterface::check_bus_status));
 }
@@ -29,9 +29,12 @@ int MotorControllerCANInterface::request_frames(bool power_status_frame,
         log_debug("Sent MotorControllerFrameRequest CAN message with Data 0x%s",
                   message_data);
     } else {
-        log_error("Failed to send MotorControllerFrameRequest CAN message with "
-                  "Data 0x%s",
-                  message_data);
+        // log_error("Failed to send MotorControllerFrameRequest CAN message with "
+        //           "Data 0x%s",
+        //           message_data);
+        log_error(
+            "Failed to send CAN message MotorControllerFrameRequest with ID 0x%03X Length %d Data 0x%s",
+            message.id, message.len, message_data);
     }
 
     return result;
@@ -39,6 +42,7 @@ int MotorControllerCANInterface::request_frames(bool power_status_frame,
 
 void MotorControllerCANInterface::message_handler() {
     while (true) {
+        /*
         ThisThread::flags_wait_all(0x1);
         CANMessage message;
         while (can.read(message)) {
@@ -64,6 +68,7 @@ void MotorControllerCANInterface::message_handler() {
                 handle(&can_struct);
             }
         }
+        */
     }
 }
 

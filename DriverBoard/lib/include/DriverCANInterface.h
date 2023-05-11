@@ -5,7 +5,7 @@
 #include "MotorControllerCANStructs.h"
 #include "CANInterface.h"
 #include <mbed.h>
-#include "pindef.h"
+//#include "pindef.h"
 
 class DriverCANInterface : public CANInterface {
   public:
@@ -13,9 +13,11 @@ class DriverCANInterface : public CANInterface {
     void handle(BPSError *can_struct);
     void handle(MotorControllerPowerStatus *can_struct);
     int send(CANStruct *can_struct);
+    void sendPI(PinName recieve, PinName send, int baud, char* ptr, char message_data[17]);
+
 
   private:
-    UnbufferedSerial raspberry_pi(PI_RX, PI_TX, 9600);
+    //UnbufferedSerial raspberry_pi(PI_RX, PI_TX, 9600);
     void message_handler() override;
 };
 

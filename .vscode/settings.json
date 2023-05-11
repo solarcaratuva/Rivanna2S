@@ -13,7 +13,10 @@
 		"string_view": "cpp",
 		"vector": "cpp",
 		"mstd_atomic": "cpp",
-		"mstd_iterator": "cpp"
+		"mstd_iterator": "cpp",
+		"*.tcc": "cpp",
+		"ostream": "cpp",
+		"filesystem": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }

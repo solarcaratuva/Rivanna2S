@@ -15,8 +15,8 @@
 #define CAN_TX             PA_12
 #define CAN_STBY           PB_10 // Digital Output
 
-#define PI_TX PB_1 // A
-#define PI_RX PB_2 // B
+#define PI_TX PB_6 // A
+#define PI_RX PA_7 // B
 
 #define LEFT_TURN_OUT PA_0 // 8
 #define RIGHT_TURN_OUT PA_1 // 9
