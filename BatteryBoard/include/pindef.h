@@ -9,6 +9,10 @@
 #define FanTech             PA_2
 #define CONTACT_12          PA_1
 
+#define CAN_RX             PB_12 // Rx for MCU
+#define CAN_TX             PB_13
+#define CAN_STBY           PB_9 // Digital Output
+
 // Outputs
 #define MPPT_PRECHARGE      PB_1
 #define MOTOR_PRECHARGE     PA_7

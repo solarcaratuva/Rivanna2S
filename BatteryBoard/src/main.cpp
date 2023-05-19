@@ -34,6 +34,8 @@ DigitalOut discharge_enable(DISCHARGE_ENABLE);
 DigitalOut motor_precharge(MOTOR_PRECHARGE);
 DigitalOut charge_enable(CHARGE_ENABLE);
 
+BPSCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
+
 Thread precharge_check;
 Thread discharge_check;
 bool allow_precharge = true;
@@ -152,57 +154,12 @@ int main() {
 
     // signalFlashThread.start(signalFlashHandler);
     // peripheral_error_thread.start(peripheral_error_handler);
-    precharge_check.start(battery_precharge);
-    discharge_check.start(battery_discharge);
+    // precharge_check.start(battery_precharge);
+    // discharge_check.start(battery_discharge);
 
     while (true) {
         log_debug("Main thread loop");
-
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
 
-void BPSCANInterface::handle(BPSPackInformation *can_struct) {
-    charge_relay_status = can_struct->charge_relay_status;
-    discharge_relay_status = can_struct->discharge_relay_status;
-}
-
-// void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
-//     can_struct->log(LOG_INFO);
-
-//     brake_lights = can_struct->brake_lights;
-
-//     flashLSignal = can_struct->left_turn_signal;
-//     flashRSignal = can_struct->right_turn_signal;
-//     flashHazards = can_struct->hazards;
-
-//     signalFlashThread.flags_set(0x1);
-// }
-
-// void BPSCANInterface::handle(BPSPackInformation *can_struct) {
-//     can_struct->log(LOG_INFO);
-
-//     bps_relay_controller.update_state(can_struct);
-
-//     vehicle_can_interface.send(can_struct);
-// }
-
-// void BPSCANInterface::handle(BPSError *can_struct) {
-//     can_struct->log(LOG_INFO);
-
-//     bps_relay_controller.update_state(can_struct);
-
-//     vehicle_can_interface.send(can_struct);
-// }
-
-// void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
-//     can_struct->log(LOG_INFO);
-
-//     vehicle_can_interface.send(can_struct);
-// }
-
-// void BPSCANInterface::handle(BPSCellTemperature *can_struct) {
-//     can_struct->log(LOG_INFO);
-
-//     vehicle_can_interface.send(can_struct);
-// }
