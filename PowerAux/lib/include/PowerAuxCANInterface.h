@@ -9,8 +9,6 @@ class PowerAuxCANInterface : public MainCANInterface {
         : MainCANInterface(rd, td, standby_pin) {}
 
     void handle(ECUPowerAuxCommands *can_struct) override;
-    void handle(MotorControllerPowerStatus *can_struct) override;
-    void handle(ECUMotorCommands *can_struct) override;
 };
 
 #endif
