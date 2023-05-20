@@ -8,7 +8,8 @@
 class BPSCANInterface : public CANInterface {
   public:
     BPSCANInterface(PinName rd, PinName td, PinName standby_pin);
-    void handle(ECUMotorCommands *can_struct);
+    void handle(BPSPackInformation *can_struct);
+    void handle(BPSError *can_struct);
     int send(CANStruct *can_struct);
   private:
     void message_handler() override;

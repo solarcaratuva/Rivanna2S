@@ -43,8 +43,12 @@ void BPSCANInterface::message_handler() {
                       "from BPS",
                       message.id, message.len, message_data);
 
-            if (message.id == ECUMotorCommands_MESSAGE_ID) {
-                ECUMotorCommands can_struct;
+            if (message.id == BPSError_MESSAGE_ID) {
+                BPSError can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == BPSPackInformation_MESSAGE_ID) {
+                BPSPackInformation can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             }
