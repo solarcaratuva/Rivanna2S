@@ -35,7 +35,11 @@ void BPSCANInterface::message_handler() {
     while (true) {
         ThisThread::flags_wait_all(0x1);
         CANMessage message;
+        
         while (can.read(message)) {
+            // Forwards all messages to vehicle can bus
+            message_forwarder(&message);
+
             char message_data[17];
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);

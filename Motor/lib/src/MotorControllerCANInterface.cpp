@@ -42,6 +42,8 @@ void MotorControllerCANInterface::message_handler() {
         ThisThread::flags_wait_all(0x1);
         CANMessage message;
         while (can.read(message)) {
+            message_forwarder(&message);
+            
             char message_data[17];
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);

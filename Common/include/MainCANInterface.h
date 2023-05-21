@@ -23,6 +23,7 @@ class MainCANInterface : public CANInterface {
     MainCANInterface(PinName rd, PinName td, PinName standby_pin);
 
     int send(CANStruct *can_struct);
+    int send_message(CANMessage *message);
 
     virtual void handle(ECUMotorCommands *can_struct) {}
     virtual void handle(ECUPowerAuxCommands *can_struct) {}

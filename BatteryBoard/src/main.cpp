@@ -177,3 +177,10 @@ void BPSCANInterface::handle(BPSError *can_struct) {
         vehicle_can_interface.send(&x);
     }
 }
+
+void BPSCANInterface::message_forwarder(CANMessage *message) {
+    // message_forwarder is called whenever the BPSCANInterface gets a CAN message
+    // this forwards the message to the vehicle can bus
+    vehicle_can_interface.send_message(message);
+}
+

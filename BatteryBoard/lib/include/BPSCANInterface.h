@@ -13,6 +13,7 @@ class BPSCANInterface : public CANInterface {
     int send(CANStruct *can_struct);
   private:
     void message_handler() override;
+    void message_forwarder(CANMessage *message);
 };
 
 #endif

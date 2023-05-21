@@ -78,7 +78,6 @@ void MotorControllerCANInterface::handle(
     MotorControllerPowerStatus *can_struct) {
     can_struct->log(LOG_INFO);
 
-    vehicle_can_interface.send(can_struct);
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
 }
 
@@ -86,13 +85,20 @@ void MotorControllerCANInterface::handle(
     MotorControllerDriveStatus *can_struct) {
     can_struct->log(LOG_INFO);
 
-    vehicle_can_interface.send(can_struct);
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
     can_struct->log(LOG_INFO);
 
-    vehicle_can_interface.send(can_struct);
     motor_state_tracker.setMotorControllerError(*can_struct);
 }
+
+
+void MotorControllerCANInterface::message_forwarder(CANMessage *message) {
+    // message_forwarder is called whenever the MotorControllerCANInterface gets a CAN message
+    // this forwards the message to the vehicle can bus
+    vehicle_can_interface.send_message(message);
+}
+
+
