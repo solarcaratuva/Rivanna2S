@@ -44,7 +44,7 @@ DigitalOut charge_enable(CHARGE_ENABLE);
 BatteryBoardCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 //  ------------------------------------------------------
 // TODO: add pin defs to the pindef.h file to specify BPS CAN Pins
-BPSCANInterface bps_can_interface(CAN_RX, CAN_TX, CAN_STBY);
+BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 //  ------------------------------------------------------
 
 Thread precharge_check;
