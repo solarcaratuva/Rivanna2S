@@ -47,10 +47,14 @@ void BPSCANInterface::message_handler() {
                 BPSError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
+                can_struct->log(LOG_INFO);
+
             } else if (message.id == BPSPackInformation_MESSAGE_ID) {
                 BPSPackInformation can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
+                can_struct->log(LOG_INFO);
+
             }
         }
     }
