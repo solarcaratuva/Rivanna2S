@@ -30,11 +30,17 @@ Precharge must happen when the car is turned on and if the discharge/charge have
 
 // Charge
 DigitalOut mppt_precharge(MPPT_PRECHARGE);
-DigitalOut discharge_enable(DISCHARGE_ENABLE);
+//DigitalOut discharge_enable(DISCHARGE_ENABLE);
 
 // Discharge
 DigitalOut motor_precharge(MOTOR_PRECHARGE);
-DigitalOut charge_enable(CHARGE_ENABLE);
+//DigitalOut charge_enable(CHARGE_ENABLE);
+
+//Testing PWM with Charge_Enable
+
+PwmOut charge_en(CHARGE_ENABLE);
+PwmOut discharge_en(DISCHARGE_ENABLE);
+
 
 
 // vehicle_can_interface is the CAN line between all the boards
@@ -66,13 +72,13 @@ int discharge_relay_status;
 
 // Enables switch to start precharging
 void start_precharge() {
-    charge_enable.write(1);
+    //charge_enable.write(1);
     mppt_precharge.write(1);
     motor_precharge.write(1);
 }
 
 void start_discharge() {
-    discharge_enable.write(1);
+    //discharge_enable.write(1);
     mppt_precharge.write(0);
     motor_precharge.write(0);
 }
@@ -149,13 +155,19 @@ int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
 
-    precharge_check.start(battery_precharge);
-    discharge_check.start(battery_discharge);
+    //precharge_check.start(battery_precharge);
+    //discharge_check.start(battery_discharge);
+
+    charge_en.period(1.0);
+    charge_en.write(0.5);
+    discharge_en.period(1.0);
+    discharge_en.write(0.5);
+
 
     while (true) {
         log_debug("Main thread loop");
         log_debug("aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d; ", aux_input.read(), dcdc_input.read(), fantech_input.read(), contact12_input.read());
-        log_debug("mppt_precharge: %d; motor_precharge: %d; discharge_enable: %d; charge_enable: %d\n",  mppt_precharge.read(), motor_precharge.read(), discharge_enable.read(), charge_enable.read());
+        //log_debug("mppt_precharge: %d; motor_precharge: %d; discharge_enable: %d; charge_enable: %d\n",  mppt_precharge.read(), motor_precharge.read(), discharge_enable.read(), charge_enable.read());
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
