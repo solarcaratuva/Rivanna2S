@@ -163,6 +163,7 @@ int main() {
 void BPSCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
     discharge_relay_status = can_struct->discharge_relay_status;
+    can_struct->log(LOG_INFO);
 }
 
 void BPSCANInterface::handle(BPSError *can_struct) {
@@ -170,7 +171,8 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     // ECUPowerAuxCommands headlights field  will only be set high by the BatteryBoard if a fault is present
 
     int bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
-    
+    can_struct->log(LOG_INFO);
+
     if (bms_strobe) {
         ECUPowerAuxCommands x;
         x.headlights = bms_strobe; 
@@ -182,5 +184,6 @@ void BPSCANInterface::message_forwarder(CANMessage *message) {
     // message_forwarder is called whenever the BPSCANInterface gets a CAN message
     // this forwards the message to the vehicle can bus
     vehicle_can_interface.send_message(message);
+    can_struct->log(LOG_INFO);
 }
 
