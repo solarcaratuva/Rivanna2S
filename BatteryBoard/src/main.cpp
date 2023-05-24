@@ -42,10 +42,7 @@ DigitalOut charge_enable(CHARGE_ENABLE);
 // initializing a can_interface starts a thread that listens for CAN messages
 
 BatteryBoardCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
-//  ------------------------------------------------------
-// TODO: add pin defs to the pindef.h file to specify BPS CAN Pins
 BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
-//  ------------------------------------------------------
 
 Thread precharge_check;
 Thread discharge_check;
@@ -168,22 +165,22 @@ void BPSCANInterface::handle(BPSPackInformation *can_struct) {
 
 void BPSCANInterface::handle(BPSError *can_struct) {
     // Checks critical faults are present and sends ECUPowerAux command to turn on bms strobe
-    // ECUPowerAuxCommands headlights field  will only be set high by the BatteryBoard if a fault is present
+    // ECUPowerAuxCommands headlights field will be high if the message is from battery board the hazards field indicates if BMS strobe is high or not
 
     int bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     can_struct->log(LOG_INFO);
 
-    if (bms_strobe) {
-        ECUPowerAuxCommands x;
-        x.headlights = bms_strobe; 
-        vehicle_can_interface.send(&x);
-    }
+
+    ECUPowerAuxCommands x;
+    x.headlights = 1; 
+    x.hazards = bms_strobe;
+    vehicle_can_interface.send(&x);
+
 }
 
 void BPSCANInterface::message_forwarder(CANMessage *message) {
     // message_forwarder is called whenever the BPSCANInterface gets a CAN message
     // this forwards the message to the vehicle can bus
     vehicle_can_interface.send_message(message);
-    can_struct->log(LOG_INFO);
 }
 

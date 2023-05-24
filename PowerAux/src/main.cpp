@@ -74,6 +74,7 @@ int main() {
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     if (can_struct->headlights) {
         // TODO: turn on BMS strobe here
+        // bms_strobe = can_struct->hazards;
         return;
     }
 
