@@ -23,6 +23,7 @@ Thread signalFlashThread;
 DigitalOut brake_lights(BRAKE_LIGHT_EN);
 DigitalOut leftTurnSignal(LEFT_TURN_EN);
 DigitalOut rightTurnSignal(RIGHT_TURN_EN);
+DigitalOut bms_strobe(BMS_STROBE_EN);
 
 void signalFlashHandler() {
     while (true) {
@@ -73,8 +74,7 @@ int main() {
 
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     if (can_struct->headlights) {
-        // TODO: turn on BMS strobe here
-        // bms_strobe = can_struct->hazards;
+        bms_strobe = can_struct->hazards;
         return;
     }
 
