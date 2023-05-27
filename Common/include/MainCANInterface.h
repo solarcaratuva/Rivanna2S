@@ -20,7 +20,7 @@
  */
 class MainCANInterface : public CANInterface {
   public:
-    MainCANInterface(PinName rd, PinName td, PinName standby_pin);
+    MainCANInterface(PinName rd, PinName td, PinName standby_pin, PinName uart_rx, PinName uart_tx);
 
     int send(CANStruct *can_struct);
     int send_message(CANMessage *message);
@@ -42,6 +42,7 @@ class MainCANInterface : public CANInterface {
 
   private:
     void message_handler() override;
+    UnbufferedSerial raspberry_pi;
 };
 
 #endif

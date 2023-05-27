@@ -6,7 +6,7 @@
 class BatteryBoardCANInterface : public MainCANInterface {
   public:
     BatteryBoardCANInterface(PinName rd, PinName td, PinName standby_pin)
-        : MainCANInterface(rd, td, standby_pin) {}
+        : MainCANInterface(rd, td, standby_pin, NC, NC) {}
 
 };
 

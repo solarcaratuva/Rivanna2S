@@ -1,8 +1,8 @@
 #include "MainCANInterface.h"
 #include "log.h"
 
-MainCANInterface::MainCANInterface(PinName rd, PinName td, PinName standby_pin)
-    : CANInterface(rd, td, standby_pin) {
+MainCANInterface::MainCANInterface(PinName rd, PinName td, PinName standby_pin, PinName uart_rx, PinName uart_tx)
+    : CANInterface(rd, td, standby_pin), raspberry_pi(uart_rx, uart_tx, 9600) {
     can.frequency(250000);
 }
 int MainCANInterface::send_message(CANMessage *message) {
@@ -53,6 +53,8 @@ void MainCANInterface::message_handler() {
                                                            &message);
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s",
                       message.id, message.len, message_data);
+
+            raspberry_pi.write(&message_data, sizeof(message_data));
 
             if (message.id == ECUMotorCommands_MESSAGE_ID) {
                 ECUMotorCommands can_struct;
