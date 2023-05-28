@@ -15,6 +15,7 @@
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define CHARGE_PAUSE    100ms
+#define PRECHARGE_CHARGING 3s
 
 DigitalIn aux_input(AUX_PLUS);
 DigitalIn dcdc_input(DCDC_PLUS);
@@ -63,15 +64,15 @@ int discharge_relay_status;
 
 // Enables switch to start precharging
 void start_precharge() {
-    charge_enable.write(1);
+    //charge_enable.write(1);
     mppt_precharge.write(1);
-    motor_precharge.write(1);
+    //motor_precharge.write(1);
 }
 
 void start_discharge() {
-    discharge_enable.write(1);
-    mppt_precharge.write(0);
-    motor_precharge.write(0);
+    //discharge_enable.write(1);
+    //mppt_precharge.write(0);
+    motor_precharge.write(1);
 }
 // ------------------------------------------------------
 
@@ -84,6 +85,9 @@ void battery_precharge() {
         if(charge_relay_status && contact_status && allow_precharge) {
             allow_precharge = false; // after precharge starts don't restart it
             start_precharge();
+            ThisThread::sleep_for(PRECHARGE_CHARGING);
+            charge_enable.write(1);
+            mppt_precharge.write(0);
             continue;
         }
         if(!charge_relay_status || !contact_status) {
@@ -119,6 +123,9 @@ void battery_discharge() {
         if(discharge_relay_status && contact_status && allow_discharge) {
             allow_discharge = false;
             start_discharge();
+            ThisThread::sleep_for(PRECHARGE_CHARGING);
+            discharge_enable.write(1);
+            motor_precharge.write(0);
             continue;
         }
         if(!discharge_relay_status || !contact_status) {
