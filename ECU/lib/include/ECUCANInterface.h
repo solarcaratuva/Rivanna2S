@@ -6,7 +6,7 @@
 class ECUCANInterface : public MainCANInterface {
   public:
     ECUCANInterface(PinName rd, PinName td, PinName standby_pin)
-        : MainCANInterface(rd, td, standby_pin, PI_UART_RX, PI_UART_TX) {}
+        : MainCANInterface(rd, td, standby_pin, pi_rx, pi_tx) {}
     
     void handle(MotorControllerPowerStatus *can_struct) override;
 };
