@@ -68,15 +68,10 @@ int bms_strobe;
 
 // Enables switch to start precharging
 void start_precharge() {
-    has_prechaged_before = true;
-    log_debug("Is Precharging Charge");
-    allow_precharge = false; // after precharge starts don't restart it
+
     charge_enable.write(0);
     mppt_precharge.write(1);
-    ThisThread::sleep_for(PRECHARGE_CHARGING);
-    charge_enable.write(1);
-    ThisThread::sleep_for(PRECHARGE_OVERLAP);
-    mppt_precharge.write(0);
+
 }
 
 void start_discharge() {
@@ -95,7 +90,14 @@ void battery_precharge() {
 
         charge_relay_status = 1;        
         if(charge_relay_status && contact_status && allow_precharge) {
+            has_prechaged_before = true;
+            log_debug("Is Precharging Charge");
+            allow_precharge = false; // after precharge starts don't restart it
             start_precharge();
+            ThisThread::sleep_for(PRECHARGE_CHARGING);
+            charge_enable.write(1);
+            ThisThread::sleep_for(PRECHARGE_OVERLAP);
+            mppt_precharge.write(0);
             continue;
         }
         if((!charge_relay_status || !contact_status) && has_prechaged_before && !allow_precharge) {

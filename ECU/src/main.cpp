@@ -29,6 +29,7 @@ Thread motor_thread;
 Thread poweraux_thread;
 
 int RPM = 0;
+int charge_relay_status = 0;
 
 void motor_message_handler() {
     while (true) {
@@ -54,7 +55,14 @@ void motor_message_handler() {
         }
 
         to_motor.throttle = throttleValue;
-        to_motor.regen = regenValue;
+
+        //This checks if the battery pack can charge and if it can't set regen to 0.
+        if (charge_relay_status) {
+            to_motor.regen = regenValue;
+        }
+        else {
+            to_motor.regen = 0;
+        }
         log_error("R: %d T: %d", regenValue, throttleValue);
 
         to_motor.forward_en = input_reader.readForwardEn();
@@ -107,5 +115,9 @@ int main() {
 
 void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     RPM = can_struct->motor_rpm;
+}
+
+void ECUCANInterface::handle(BPSPackInformation *can_struct) {
+    charge_relay_status = can_struct->charge_relay_status;
 }
 

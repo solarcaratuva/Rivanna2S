@@ -9,6 +9,7 @@ class ECUCANInterface : public MainCANInterface {
         : MainCANInterface(rd, td, standby_pin) {}
     
     void handle(MotorControllerPowerStatus *can_struct) override;
+    void handle(BPSPackInformation *can_struct) override;
 };
 
 #endif
