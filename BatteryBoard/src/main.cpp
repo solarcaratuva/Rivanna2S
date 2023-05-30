@@ -50,6 +50,8 @@ Thread precharge_check;
 Thread discharge_check;
 bool allow_precharge = true;
 bool allow_discharge = true;
+bool has_prechaged_before = false;
+bool has_precharged_discharge_before = false;
 std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 int charge_relay_status;
 int discharge_relay_status;
@@ -85,12 +87,10 @@ void battery_precharge() {
 
         // Start precharge if state allows precharge + high voltage at contact12 + charge_relay_status high from BMS
 
-        if (bms_strobe) {
-            discharge_enable.write(0);
-            motor_precharge.write(0);
-            continue;
-        }
-        else if(charge_relay_status && contact_status && allow_precharge) {
+
+        charge_relay_status = 1;        
+        if(charge_relay_status && contact_status && allow_precharge) {
+            has_prechaged_before = true;
             log_debug("Is Precharging Charge");
             allow_precharge = false; // after precharge starts don't restart it
             start_precharge();
@@ -100,13 +100,7 @@ void battery_precharge() {
             mppt_precharge.write(0);
             continue;
         }
-        else if (discharge_relay_status && contact_status) {
-            discharge_enable.write(1);
-        }
-        else {
-            discharge_enable.write(0);
-        }
-        if(!charge_relay_status || !contact_status) {
+        if((!charge_relay_status || !contact_status) && has_prechaged_before) {
             // wait 30 seconds for charge_relay_status from the BMS to go low OR
             // wait 30 seconds for contact12 to go low
 
@@ -127,6 +121,7 @@ void battery_precharge() {
             }
             continue;
         }
+        ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
 }
@@ -136,12 +131,10 @@ void battery_discharge() {
     while (true) {
         int contact_status = contact12_input.read();
 
-        if (bms_strobe) {
-            discharge_enable.write(0);
-            motor_precharge.write(0);
-            continue;
-        }
-        else if(discharge_relay_status && contact_status && allow_discharge) {
+        //code for testing precharge while pack doesn't work
+        discharge_relay_status = 1;
+        if(discharge_relay_status && contact_status && allow_discharge) {
+            has_precharged_discharge_before = true;
             log_debug("Is Precharging Discharge");
             allow_discharge = false;
             start_discharge();
@@ -151,13 +144,7 @@ void battery_discharge() {
             motor_precharge.write(0);
             continue;
         }
-        else if (discharge_relay_status && contact_status) {
-            discharge_enable.write(1);
-        }
-        else {
-            discharge_enable.write(0);
-        }
-        if(!discharge_relay_status || !contact_status) {
+        if((!discharge_relay_status || !contact_status) && has_precharged_discharge_before) {
             bool dont_allow_discharge = false;
             chrono::steady_clock::time_point start = chrono::steady_clock::now();
             while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
@@ -173,6 +160,7 @@ void battery_discharge() {
             }
             continue;
         }
+        ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
 }
