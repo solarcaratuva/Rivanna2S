@@ -15,7 +15,7 @@
 #define POWERAUX_THREAD_PERIOD 10ms
 
 // Can Interface
-ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY, PI_UART_RX, PI_UART_TX);
+ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 // Input Reader
 ECUInputReader input_reader;
