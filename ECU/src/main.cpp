@@ -4,6 +4,8 @@
 #include "Printing.h"
 #include "log.h"
 #include "pindef.h"
+#include "MainCANInterface.h"
+#include "CanInterface.h"
 #include <mbed.h>
 #include <rtos.h>
 #include <math.h>
@@ -16,6 +18,10 @@
 
 // Can Interface
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
+
+//Serial Thing
+UnbufferedSerial raspberry_pi(PI_UART_RX, PI_UART_TX, 9600);
+
 
 // Input Reader
 ECUInputReader input_reader;
@@ -30,6 +36,21 @@ Thread poweraux_thread;
 
 int RPM = 0;
 int charge_relay_status = 0;
+
+void send_to_pi(CANStruct *can_struct) {
+    log_debug("Sending message to PI");
+    ThisThread::flags_wait_all(0x1);
+    CANMessage message;
+    //while (can.read(message)) {
+    char message_data[17];        
+    message_data[0] = '\0';
+    for (int i = 0; i < message.len; i += 1) {
+        sprintf(message_data + (i * 2), "%02X", message.data[i]);
+    }
+    raspberry_pi.write(&message_data, sizeof(message_data));
+    //}
+}
+
 
 void motor_message_handler() {
     while (true) {
@@ -73,7 +94,7 @@ void motor_message_handler() {
 
         // Send message
         vehicle_can_interface.send(&to_motor);
-
+        send_to_pi(&to_motor);
         // Sleep
         ThisThread::sleep_for(MOTOR_THREAD_PERIOD);
     }
@@ -93,7 +114,7 @@ void poweraux_message_handler() {
 
         // Send message
         vehicle_can_interface.send(&to_poweraux);
-
+        send_to_pi(&to_poweraux);
         // Sleep
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
     }
@@ -115,9 +136,35 @@ int main() {
 
 void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     RPM = can_struct->motor_rpm;
-}
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
 
 void ECUCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
-}
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
 
+void ECUCANInterface::handle(PowerAuxError *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
+
+void ECUCANInterface::handle(MotorControllerDriveStatus *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
+
+void ECUCANInterface::handle(MotorControllerError *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
+
+void ECUCANInterface::handle(BPSError *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
+
+void ECUCANInterface::handle(BPSCellVoltage *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);}
+
+void ECUCANInterface::handle(BPSCellTemperature *can_struct) {
+    CANStruct* can = can_struct;
+    send_to_pi(can);
+}
