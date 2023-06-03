@@ -20,7 +20,7 @@
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 //Serial Thing
-UnbufferedSerial raspberry_pi(PI_UART_RX, PI_UART_TX, 9600);
+UnbufferedSerial raspberry_pi(PI_UART_TX, PI_UART_RX, 9600);
 
 
 // Input Reader
@@ -39,7 +39,7 @@ int charge_relay_status = 0;
 
 void send_to_pi(CANStruct *can_struct) {
     log_debug("Sending message to PI");
-    ThisThread::flags_wait_all(0x1);
+    //ThisThread::flags_wait_all(0x1);
     CANMessage message;
     //while (can.read(message)) {
     char message_data[17];        
@@ -126,7 +126,10 @@ int main() {
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
-
+    raspberry_pi.enable_output(true);
+    
+    raspberry_pi.format(8, SerialBase::None, 1);
+    
     while (true) {
         log_debug("Main thread loop");
 
