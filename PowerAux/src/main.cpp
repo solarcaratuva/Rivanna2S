@@ -73,6 +73,8 @@ int main() {
 }
 
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
+    can_struct->log(LOG_INFO);
+
     if (can_struct->headlights) {
         bms_strobe = can_struct->hazards;
         return;

@@ -9,12 +9,15 @@
 #include <math.h>
 #include <chrono>
 
-#define LOG_LEVEL              LOG_DEBUG
-#define MAIN_LOOP_PERIOD       1s
-#define MOTOR_THREAD_PERIOD    10ms
-#define POWERAUX_THREAD_PERIOD 10ms
+#define LOG_LEVEL               LOG_DEBUG
+#define MAIN_LOOP_PERIOD        1s
+#define MOTOR_THREAD_PERIOD     10ms
+#define POWERAUX_THREAD_PERIOD  10ms
+#define MAXIMUM_BUFFER_SIZE     32
 
-// Can Interface
+static BufferedSerial serial_port(PI_UART_TX, PI_UART_RX);
+
+// CAN Interface
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 // Input Reader
@@ -97,11 +100,26 @@ int main() {
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
+        
+    // TRYING UART
+    // Set desired properties (9600-8-N-1).
+    serial_port.set_baud(9600);
+    serial_port.set_format(
+        /* bits */ 8,
+        /* parity */ BufferedSerial::None,
+        /* stop bit */ 1
+    );
+
+    // Application buffer to receive the data
+    char buf[MAXIMUM_BUFFER_SIZE] = {0};
 
     while (true) {
         log_debug("Main thread loop");
-
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+
+        if (uint32_t num = serial_port.read(buf, sizeof(buf))) {
+            serial_port.write(buf, num); // echo the input back to the terminal
+        }
     }
 }
 

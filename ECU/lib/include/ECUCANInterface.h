@@ -2,6 +2,7 @@
 #define ECU_CAN_INTERFACE_H
 
 #include "MainCANInterface.h"
+#include "pindef.h"
 // TODO: change the NC, NC in the instantiation of MainCANInteface to rx and tx pins for serial 
 class ECUCANInterface : public MainCANInterface {
   public:
