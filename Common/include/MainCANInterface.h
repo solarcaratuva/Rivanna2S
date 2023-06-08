@@ -42,7 +42,9 @@ class MainCANInterface : public CANInterface {
 
   private:
     void message_handler() override;
-    UnbufferedSerial raspberry_pi;
+    PinName uartTX;
+    PinName uartRX;
+    //UnbufferedSerial raspberry_pi;
 };
 
 #endif

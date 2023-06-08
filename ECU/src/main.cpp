@@ -84,6 +84,11 @@ void poweraux_message_handler() {
         to_poweraux.right_turn_signal = input_reader.readRightTurnSignal();
 
         // Send message
+        to_poweraux.left_turn_signal = 1;
+        to_poweraux.brake_lights = 1;
+        to_poweraux.hazards = 1;
+
+
         vehicle_can_interface.send(&to_poweraux);
 
         // Sleep
