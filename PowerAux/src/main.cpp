@@ -7,7 +7,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL          LOG_INFO
+#define LOG_LEVEL          LOG_DEBUG
 #define MAIN_LOOP_PERIOD   1s
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
@@ -73,6 +73,7 @@ int main() {
 }
 
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
+    can_struct->log(LOG_INFO);
     if (can_struct->headlights) {
         bms_strobe = can_struct->hazards;
         return;
@@ -85,4 +86,5 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     flashHazards = can_struct->hazards;
 
     signalFlashThread.flags_set(0x1);
+    
 }

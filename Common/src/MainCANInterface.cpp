@@ -1,5 +1,6 @@
 #include "MainCANInterface.h"
 #include "log.h"
+#include <mbed.h>
 
 MainCANInterface::MainCANInterface(PinName rd, PinName td, PinName standby_pin, PinName uart_tx, PinName uart_rx)
     : CANInterface(rd, td, standby_pin) {
@@ -34,8 +35,9 @@ int MainCANInterface::send(CANStruct *can_struct) {
     char message_data[17];
     CANInterface::write_CAN_message_data_to_buffer(message_data, &message);
     if (uartTX != NC) {
-        log_debug("Sending message to PI");
-        BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
+        log_debug("Sending test message to PI");
+        static BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
+        //raspberry_pi.write("cringe",sizeof("cringe"));
         raspberry_pi.write(&message_data, sizeof(message_data));
     }
     if (result == 1) {
@@ -61,12 +63,13 @@ void MainCANInterface::message_handler() {
                                                            &message);
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s",
                       message.id, message.len, message_data);
-            if (uartTX != NC) {
-                log_debug("Sending message to PI");
-                log_debug(message_data);
-                BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
-                raspberry_pi.write(&message_data, sizeof(message_data));
-            }
+            //if (uartTX != NC) {
+                //log_debug("Sending message to PI");
+                //log_debug(message_data);
+                //BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
+                //raspberry_pi.write("cringe",sizeof("cringe"));
+                //raspberry_pi.write(&message_data, sizeof(message_data));
+           //}
 
             if (message.id == ECUMotorCommands_MESSAGE_ID) {
                 ECUMotorCommands can_struct;
