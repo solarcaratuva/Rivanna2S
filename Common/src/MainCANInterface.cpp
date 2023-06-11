@@ -36,9 +36,28 @@ int MainCANInterface::send(CANStruct *can_struct) {
     CANInterface::write_CAN_message_data_to_buffer(message_data, &message);
     if (uartTX != NC) {
         log_debug("Sending test message to PI");
+        char data_to_pi[24];
+        data_to_pi[0] = 'y';
+        data_to_pi[1] = message.id; //% 0x1000;
+        //data_to_pi[1] = message.id % 0x0100;
+        //data_to_pi[2] = message.id % 0x0010;
+        //data_to_pi[3] = message.id % 0x0001;
+        for (int i = 0; i < 17; i++) {
+            data_to_pi[i+2] = message_data[i];
+        }
+        data_to_pi[23] = 'z';
+        //data_to_pi[22] = '\n';
         static BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
         //raspberry_pi.write("cringe",sizeof("cringe"));
-        raspberry_pi.write(&message_data, sizeof(message_data));
+        //raspberry_pi.set_format(
+        ///* bits */ 8,
+        ///* parity */ BufferedSerial::None,
+        ///* stop bit */ 1
+    //);
+        raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
+        //raspberry_pi.write('z', sizeof('z'));
+        //.write("\n",sizeof("\n"));
+        //raspberry_pi.write(&message_data, sizeof(message_data));
     }
     if (result == 1) {
         log_debug("Sent CAN message with ID 0x%03X Length %d Data 0x%s",

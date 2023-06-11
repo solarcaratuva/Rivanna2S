@@ -1,13 +1,14 @@
+#include "main.h"
 #include "ECUCANInterface.h"
 #include "ECUCANStructs.h"
 #include "ECUInputReader.h"
 #include "Printing.h"
 #include "log.h"
 #include "pindef.h"
+#include <chrono>
+#include <math.h>
 #include <mbed.h>
 #include <rtos.h>
-#include <math.h>
-#include <chrono>
 
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
@@ -77,6 +78,9 @@ void poweraux_message_handler() {
         to_poweraux.hazards = input_reader.readHazards();
         to_poweraux.brake_lights = input_reader.readBrakePedal() || (input_reader.readRegen() && RPM > 0); 
 
+
+        log_debug("Brake value is: %d", to_poweraux.brake_lights);
+        
         // ECUPowerAuxCommands headlights field  will be set low to differentiate messages from ECU vs BatteryBoard
         to_poweraux.headlights = 0;
 
@@ -84,9 +88,9 @@ void poweraux_message_handler() {
         to_poweraux.right_turn_signal = input_reader.readRightTurnSignal();
 
         // Send message
-        to_poweraux.left_turn_signal = 1;
-        to_poweraux.brake_lights = 1;
-        to_poweraux.hazards = 1;
+        //to_poweraux.left_turn_signal = 1;
+        //to_poweraux.brake_lights = 1;
+        //to_poweraux.hazards = 1;
 
 
         vehicle_can_interface.send(&to_poweraux);

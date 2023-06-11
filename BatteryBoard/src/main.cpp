@@ -15,6 +15,8 @@
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define CHARGE_PAUSE    100ms
+#define PRECHARGE_CHARGING 2500ms
+#define PRECHARGE_OVERLAP  500ms
 
 DigitalIn aux_input(AUX_PLUS);
 DigitalIn dcdc_input(DCDC_PLUS);
@@ -48,9 +50,12 @@ Thread precharge_check;
 Thread discharge_check;
 bool allow_precharge = true;
 bool allow_discharge = true;
+bool has_prechaged_before = false;
+bool has_precharged_discharge_before = false;
 std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 int charge_relay_status;
 int discharge_relay_status;
+int bms_strobe;
 
 //  ------------------------------------------------------
 // TODO: make sure these methods are correct
@@ -63,15 +68,15 @@ int discharge_relay_status;
 
 // Enables switch to start precharging
 void start_precharge() {
-    charge_enable.write(1);
+
+    charge_enable.write(0);
     mppt_precharge.write(1);
-    motor_precharge.write(1);
+
 }
 
 void start_discharge() {
-    discharge_enable.write(1);
-    mppt_precharge.write(0);
-    motor_precharge.write(0);
+    discharge_enable.write(0);
+    motor_precharge.write(1);
 }
 // ------------------------------------------------------
 
@@ -81,12 +86,21 @@ void battery_precharge() {
         int contact_status = contact12_input.read();
 
         // Start precharge if state allows precharge + high voltage at contact12 + charge_relay_status high from BMS
+
+
+        //charge_relay_status = 1;        
         if(charge_relay_status && contact_status && allow_precharge) {
+            has_prechaged_before = true;
+            log_debug("Is Precharging Charge");
             allow_precharge = false; // after precharge starts don't restart it
             start_precharge();
+            ThisThread::sleep_for(PRECHARGE_CHARGING);
+            charge_enable.write(1);
+            ThisThread::sleep_for(PRECHARGE_OVERLAP);
+            mppt_precharge.write(0);
             continue;
         }
-        if(!charge_relay_status || !contact_status) {
+        if((!charge_relay_status || !contact_status) && has_prechaged_before && !allow_precharge) {
             // wait 30 seconds for charge_relay_status from the BMS to go low OR
             // wait 30 seconds for contact12 to go low
 
@@ -107,6 +121,7 @@ void battery_precharge() {
             }
             continue;
         }
+        ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
 }
@@ -116,27 +131,36 @@ void battery_discharge() {
     while (true) {
         int contact_status = contact12_input.read();
 
+        //code for testing precharge while pack doesn't work
+        //discharge_relay_status = 1;
         if(discharge_relay_status && contact_status && allow_discharge) {
+            has_precharged_discharge_before = true;
+            log_debug("Is Precharging Discharge");
             allow_discharge = false;
             start_discharge();
+            ThisThread::sleep_for(PRECHARGE_CHARGING);
+            discharge_enable.write(1);
+            ThisThread::sleep_for(PRECHARGE_OVERLAP);
+            motor_precharge.write(0);
             continue;
         }
-        if(!discharge_relay_status || !contact_status) {
-            bool dont_allow_charge = false;
+        if((!discharge_relay_status || !contact_status) && has_precharged_discharge_before && ! allow_discharge) {
+            bool dont_allow_discharge = false;
             chrono::steady_clock::time_point start = chrono::steady_clock::now();
             while(chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start).count() < 30) {
                 // TODO: same as above && vs ||
                 if(discharge_relay_status && contact_status) {
-                    dont_allow_charge = true;
+                    dont_allow_discharge = true;
                     break;
                 }
                 ThisThread::sleep_for(CHARGE_PAUSE);
             }
-            if(!dont_allow_charge) {
+            if(!dont_allow_discharge) {
                 allow_discharge = true;
             }
             continue;
         }
+        ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
 }
@@ -167,7 +191,7 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     // Checks critical faults are present and sends ECUPowerAux command to turn on bms strobe
     // ECUPowerAuxCommands headlights field will be high if the message is from battery board the hazards field indicates if BMS strobe is high or not
 
-    int bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     can_struct->log(LOG_INFO);
 
 
@@ -182,5 +206,4 @@ void BPSCANInterface::message_forwarder(CANMessage *message) {
     // message_forwarder is called whenever the BPSCANInterface gets a CAN message
     // this forwards the message to the vehicle can bus
     vehicle_can_interface.send_message(message);
-}
-
+}   
