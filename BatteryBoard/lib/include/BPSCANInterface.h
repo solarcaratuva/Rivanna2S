@@ -10,6 +10,7 @@ class BPSCANInterface : public CANInterface {
     BPSCANInterface(PinName rd, PinName td, PinName standby_pin);
     void handle(BPSPackInformation *can_struct);
     void handle(BPSError *can_struct);
+    void handle(BPSCellVoltage *can_struct);
     int send(CANStruct *can_struct);
   private:
     void message_handler() override;

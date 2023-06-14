@@ -29,6 +29,8 @@ ECUPowerAuxCommands to_poweraux;
 Thread motor_thread;
 Thread poweraux_thread;
 
+int charge_relay_status;
+
 int RPM = 0;
 
 void motor_message_handler() {
@@ -36,7 +38,7 @@ void motor_message_handler() {
         uint16_t pedalValue = input_reader.readThrottle();
         uint16_t regenValue;    
         uint16_t throttleValue;
-        if (input_reader.readRegen()) {
+        if (input_reader.readRegen() && charge_relay_status) {
             // Tesla mode
 
             if (pedalValue <= 50) {
@@ -116,5 +118,9 @@ int main() {
 
 void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     RPM = can_struct->motor_rpm;
+}
+
+void ECUCANInterface::handle(BPSPackInformation *can_struct) {
+    charge_relay_status = can_struct->charge_relay_status;
 }
 

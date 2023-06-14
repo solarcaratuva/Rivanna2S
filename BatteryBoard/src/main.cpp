@@ -52,10 +52,14 @@ bool allow_precharge = true;
 bool allow_discharge = true;
 bool has_prechaged_before = false;
 bool has_precharged_discharge_before = false;
+bool contact12V_has_gone_high = false;
 std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 int charge_relay_status;
 int discharge_relay_status;
 int bms_strobe;
+bool cell_voltage_fault;
+int low_cell_voltage_threshold = 27500;
+int high_cell_voltage_threshold = 42000;
 
 //  ------------------------------------------------------
 // TODO: make sure these methods are correct
@@ -88,7 +92,13 @@ void battery_precharge() {
         // Start precharge if state allows precharge + high voltage at contact12 + charge_relay_status high from BMS
 
 
-        //charge_relay_status = 1;        
+        //charge_relay_status = 1;    
+        if(bms_strobe || cell_voltage_fault) {
+            charge_enable.write(0);
+            mppt_precharge.write(0);
+            allow_precharge = true;
+            continue;
+        }    
         if(charge_relay_status && contact_status && allow_precharge) {
             has_prechaged_before = true;
             log_debug("Is Precharging Charge");
@@ -133,6 +143,12 @@ void battery_discharge() {
 
         //code for testing precharge while pack doesn't work
         //discharge_relay_status = 1;
+        if(bms_strobe || cell_voltage_fault) {
+            discharge_enable.write(0);
+            motor_precharge.write(0);
+            allow_discharge = true;
+            continue;
+        }    
         if(discharge_relay_status && contact_status && allow_discharge) {
             has_precharged_discharge_before = true;
             log_debug("Is Precharging Discharge");
@@ -177,7 +193,17 @@ int main() {
         log_debug("Main thread loop");
         log_debug("aux_input: %d; dc_input: %d; fantech_input: %d; contact12_input: %d; ", aux_input.read(), dcdc_input.read(), fantech_input.read(), contact12_input.read());
         log_debug("mppt_precharge: %d; motor_precharge: %d; discharge_enable: %d; charge_enable: %d\n",  mppt_precharge.read(), motor_precharge.read(), discharge_enable.read(), charge_enable.read());
+        if (!contact12V_has_gone_high && contact12_input.read()) {
+            contact12V_has_gone_high = true;
+        }
+        ECUPowerAuxCommands x;
+        x.headlights = 1; 
+        x.hazards = bms_strobe;
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        if (cell_voltage_fault ||  (contact12V_has_gone_high && !(contact12_input.read()))) {
+        x.hazards = 1;
+        }
+        vehicle_can_interface.send(&x);
     }
 }
 
@@ -195,12 +221,31 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     can_struct->log(LOG_INFO);
 
 
+    /*
     ECUPowerAuxCommands x;
     x.headlights = 1; 
     x.hazards = bms_strobe;
+    if (cell_voltage_fault ||  (contact12V_has_gone_high && !(contact12_input.read()))) {
+        x.hazards = 1;
+    }
     vehicle_can_interface.send(&x);
-
+    */
 }
+
+void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
+    cell_voltage_fault = false;
+    can_struct->log(LOG_DEBUG);
+    log_debug("Recieved BPSCellVoltage Frame");
+    if (can_struct->low_cell_voltage < low_cell_voltage_threshold || can_struct->high_cell_voltage > high_cell_voltage_threshold) {
+        cell_voltage_fault = true;
+        log_debug("Low or High cell voltage fault");
+        //ECUPowerAuxCommands x;
+        //x.headlights = 1; 
+        //x.hazards = 1;
+        //vehicle_can_interface.send(&x);
+    }
+}
+
 
 void BPSCANInterface::message_forwarder(CANMessage *message) {
     // message_forwarder is called whenever the BPSCANInterface gets a CAN message

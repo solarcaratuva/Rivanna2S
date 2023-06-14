@@ -56,6 +56,11 @@ void BPSCANInterface::message_handler() {
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             }
+            else if (message.id == BPSCellVoltage_MESSAGE_ID) {
+                BPSCellVoltage can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            }
         }
     }
 }
