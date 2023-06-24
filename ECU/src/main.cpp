@@ -12,8 +12,8 @@
 
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
-#define MOTOR_THREAD_PERIOD    10ms
-#define POWERAUX_THREAD_PERIOD 10ms
+#define MOTOR_THREAD_PERIOD    100ms
+#define POWERAUX_THREAD_PERIOD 100ms
 
 // Can Interface
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
@@ -55,6 +55,9 @@ void motor_message_handler() {
             throttleValue = pedalValue;
             regenValue = 0;
         }
+        if (throttleValue > 224) {
+            throttleValue = 224;
+        }
 
         to_motor.throttle = throttleValue;
         to_motor.regen = regenValue;
@@ -68,6 +71,7 @@ void motor_message_handler() {
 
         // Send message
         vehicle_can_interface.send(&to_motor);
+        to_motor.log(LOG_DEBUG);
 
         // Sleep
         ThisThread::sleep_for(MOTOR_THREAD_PERIOD);
@@ -81,7 +85,7 @@ void poweraux_message_handler() {
         to_poweraux.brake_lights = input_reader.readBrakePedal() || (input_reader.readRegen() && RPM > 0); 
 
 
-        log_debug("Brake value is: %d", to_poweraux.brake_lights);
+        //debug("Brake value is: %d", to_poweraux.brake_lights);
         
         // ECUPowerAuxCommands headlights field  will be set low to differentiate messages from ECU vs BatteryBoard
         to_poweraux.headlights = 0;
@@ -96,6 +100,7 @@ void poweraux_message_handler() {
 
 
         vehicle_can_interface.send(&to_poweraux);
+        to_poweraux.log(LOG_DEBUG);
 
         // Sleep
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);

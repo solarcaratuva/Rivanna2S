@@ -24,6 +24,7 @@ class MainCANInterface : public CANInterface {
 
     int send(CANStruct *can_struct);
     int send_message(CANMessage *message);
+    void send_to_pi(CANMessage *message, uint16_t message_id);
 
     virtual void handle(ECUMotorCommands *can_struct) {}
     virtual void handle(ECUPowerAuxCommands *can_struct) {}

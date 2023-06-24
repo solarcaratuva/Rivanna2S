@@ -57,9 +57,12 @@ std::chrono::steady_clock::time_point last_time_since_r1r2_input;
 int charge_relay_status;
 int discharge_relay_status;
 int bms_strobe;
-bool cell_voltage_fault;
+bool cell_voltage_fault = false;
+bool has_low_cell_voltage_before = false;
+bool has_faulted = false;
 int low_cell_voltage_threshold = 27500;
 int high_cell_voltage_threshold = 42000;
+uint16_t BPS_Cell_Messages = 0;
 
 //  ------------------------------------------------------
 // TODO: make sure these methods are correct
@@ -93,13 +96,13 @@ void battery_precharge() {
 
 
         //charge_relay_status = 1;    
-        if(bms_strobe || cell_voltage_fault) {
+        if(has_faulted || cell_voltage_fault) {
             charge_enable.write(0);
             mppt_precharge.write(0);
-            allow_precharge = true;
+            //allow_precharge = true;
             continue;
         }    
-        if(charge_relay_status && contact_status && allow_precharge) {
+        else if(charge_relay_status && contact_status && allow_precharge && !cell_voltage_fault && !has_faulted) {
             has_prechaged_before = true;
             log_debug("Is Precharging Charge");
             allow_precharge = false; // after precharge starts don't restart it
@@ -110,6 +113,7 @@ void battery_precharge() {
             mppt_precharge.write(0);
             continue;
         }
+        /*
         if((!charge_relay_status || !contact_status) && has_prechaged_before && !allow_precharge) {
             // wait 30 seconds for charge_relay_status from the BMS to go low OR
             // wait 30 seconds for contact12 to go low
@@ -131,6 +135,7 @@ void battery_precharge() {
             }
             continue;
         }
+        */
         ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
@@ -143,13 +148,14 @@ void battery_discharge() {
 
         //code for testing precharge while pack doesn't work
         //discharge_relay_status = 1;
-        if(bms_strobe || cell_voltage_fault) {
+        if(has_faulted || cell_voltage_fault) {
             discharge_enable.write(0);
             motor_precharge.write(0);
-            allow_discharge = true;
+            log_debug("Has faulted");
+            //allow_discharge = true;
             continue;
         }    
-        if(discharge_relay_status && contact_status && allow_discharge) {
+        else if(discharge_relay_status && contact_status && allow_discharge && !cell_voltage_fault && !has_faulted) {
             has_precharged_discharge_before = true;
             log_debug("Is Precharging Discharge");
             allow_discharge = false;
@@ -160,6 +166,7 @@ void battery_discharge() {
             motor_precharge.write(0);
             continue;
         }
+        /*
         if((!discharge_relay_status || !contact_status) && has_precharged_discharge_before && ! allow_discharge) {
             bool dont_allow_discharge = false;
             chrono::steady_clock::time_point start = chrono::steady_clock::now();
@@ -176,6 +183,7 @@ void battery_discharge() {
             }
             continue;
         }
+        */
         ThisThread::sleep_for(CHARGE_PAUSE);
     }
     
@@ -200,7 +208,7 @@ int main() {
         x.headlights = 1; 
         x.hazards = bms_strobe;
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-        if (cell_voltage_fault ||  (contact12V_has_gone_high && !(contact12_input.read()))) {
+        if (cell_voltage_fault || has_faulted || (contact12V_has_gone_high && !(contact12_input.read()))) {
         x.hazards = 1;
         }
         vehicle_can_interface.send(&x);
@@ -218,6 +226,9 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     // ECUPowerAuxCommands headlights field will be high if the message is from battery board the hazards field indicates if BMS strobe is high or not
 
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    if (bms_strobe) {
+        has_faulted = true;
+    }
     can_struct->log(LOG_INFO);
 
 
@@ -233,12 +244,21 @@ void BPSCANInterface::handle(BPSError *can_struct) {
 }
 
 void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
-    cell_voltage_fault = false;
+    //cell_voltage_fault = false;
     can_struct->log(LOG_DEBUG);
     log_debug("Recieved BPSCellVoltage Frame");
-    if (can_struct->low_cell_voltage < low_cell_voltage_threshold || can_struct->high_cell_voltage > high_cell_voltage_threshold) {
-        cell_voltage_fault = true;
-        log_debug("Low or High cell voltage fault");
+    if (BPS_Cell_Messages < 3) {
+        BPS_Cell_Messages++;
+    }
+    if ((can_struct->low_cell_voltage < low_cell_voltage_threshold || can_struct->high_cell_voltage > high_cell_voltage_threshold) && BPS_Cell_Messages >= 3) {
+        if (!has_low_cell_voltage_before) {
+            has_low_cell_voltage_before = true;
+        }
+        else {
+            cell_voltage_fault = true;
+            log_debug("Low or High cell voltage fault");
+        }
+        
         //ECUPowerAuxCommands x;
         //x.headlights = 1; 
         //x.hazards = 1;

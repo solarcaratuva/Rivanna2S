@@ -14,6 +14,7 @@ int MainCANInterface::send_message(CANMessage *message) {
 
     char message_data[17];
     CANInterface::write_CAN_message_data_to_buffer(message_data, message);
+    send_to_pi(message, message->id);
     if (result == 1) {
         log_debug("Sent CAN message with ID 0x%03X Length %d Data 0x%s",
                   message->id, message->len, message_data);
@@ -34,35 +35,7 @@ int MainCANInterface::send(CANStruct *can_struct) {
 
     char message_data[17];
     CANInterface::write_CAN_message_data_to_buffer(message_data, &message);
-    if (uartTX != NC) {
-        log_debug("Sending test message to PI");
-        log_debug("Message id is %d", message.id);
-        char data_to_pi[25];
-        data_to_pi[0] = 249;
-        data_to_pi[1] = message.id / 0x0100;; //% 0x1000;
-        data_to_pi[2] = message.id % (0x0100);
-        //data_to_pi[1] = message.id % 0x0100;
-        //data_to_pi[2] = message.id % 0x0010;
-        //data_to_pi[3] = message.id % 0x0001;
-        for (int i = 0; i < 17; i++) {
-            data_to_pi[i+3] = message_data[i];
-        }
-        data_to_pi[24] = 250;
-
-        log_debug("Raw UART message %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", data_to_pi[0], data_to_pi[1], data_to_pi[2], data_to_pi[3], data_to_pi[4], data_to_pi[5], data_to_pi[6], data_to_pi[7], data_to_pi[8], data_to_pi[9], data_to_pi[10], data_to_pi[11], data_to_pi[12], data_to_pi[13], data_to_pi[14], data_to_pi[15], data_to_pi[16], data_to_pi[17], data_to_pi[18], data_to_pi[19], data_to_pi[20], data_to_pi[21], data_to_pi[22], data_to_pi[23], data_to_pi[24]);
-        //data_to_pi[22] = '\n';
-        static BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
-        //raspberry_pi.write("cringe",sizeof("cringe"));
-        //raspberry_pi.set_format(
-        ///* bits */ 8,
-        ///* parity */ BufferedSerial::None,
-        ///* stop bit */ 1
-    //);
-        raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
-        //raspberry_pi.write('z', sizeof('z'));
-        //.write("\n",sizeof("\n"));
-        //raspberry_pi.write(&message_data, sizeof(message_data));
-    }
+    send_to_pi(&message, message.id);
     if (result == 1) {
         log_debug("Sent CAN message with ID 0x%03X Length %d Data 0x%s",
                   message.id, message.len, message_data);
@@ -84,21 +57,20 @@ void MainCANInterface::message_handler() {
             
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);
+
+            
+
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s",
                       message.id, message.len, message_data);
-            //if (uartTX != NC) {
-                //log_debug("Sending message to PI");
-                //log_debug(message_data);
-                //BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
-                //raspberry_pi.write("cringe",sizeof("cringe"));
-                //raspberry_pi.write(&message_data, sizeof(message_data));
-           //}
+
 
             if (message.id == ECUMotorCommands_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 ECUMotorCommands can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == ECUPowerAuxCommands_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 ECUPowerAuxCommands can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
@@ -123,34 +95,66 @@ void MainCANInterface::message_handler() {
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID) {
+                log_debug("Motor Power Status");
+                send_to_pi(&message, 0x325);
                 MotorControllerPowerStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == MotorControllerDriveStatus_MESSAGE_ID) {
+                log_debug("Motor Drive Status");
+                send_to_pi(&message, 0x315);
                 MotorControllerDriveStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == MotorControllerError_MESSAGE_ID) {
+                log_debug("Motor Error Status");
+                send_to_pi(&message, 0x115);
                 MotorControllerError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSPackInformation_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 BPSPackInformation can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSError_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 BPSError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSCellVoltage_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 BPSCellVoltage can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSCellTemperature_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
                 BPSCellTemperature can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             }
         }
+    }
+}
+
+void MainCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
+    if (uartTX != NC) {
+        char message_data[17];
+        CANInterface::write_CAN_message_data_to_buffer(message_data,
+                                                           message);
+        log_debug("Sending test message to PI");
+        log_debug("Message id is %d", message->id);
+        char data_to_pi[25];
+        data_to_pi[0] = 249;
+        data_to_pi[1] = message->id / 0x0100;; //% 0x1000;
+        data_to_pi[2] = message->id % (0x0100);
+        for (int i = 0; i < 17; i++) {
+            data_to_pi[i+3] = message_data[i];
+        }
+        data_to_pi[24] = 250;
+
+        log_debug("Raw UART message %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", data_to_pi[0], data_to_pi[1], data_to_pi[2], data_to_pi[3], data_to_pi[4], data_to_pi[5], data_to_pi[6], data_to_pi[7], data_to_pi[8], data_to_pi[9], data_to_pi[10], data_to_pi[11], data_to_pi[12], data_to_pi[13], data_to_pi[14], data_to_pi[15], data_to_pi[16], data_to_pi[17], data_to_pi[18], data_to_pi[19], data_to_pi[20], data_to_pi[21], data_to_pi[22], data_to_pi[23], data_to_pi[24]);
+        static BufferedSerial raspberry_pi(uartTX, uartRX, 19200);
+        raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
     }
 }

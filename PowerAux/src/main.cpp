@@ -24,6 +24,7 @@ DigitalOut brake_lights(BRAKE_LIGHT_EN);
 DigitalOut leftTurnSignal(LEFT_TURN_EN);
 DigitalOut rightTurnSignal(RIGHT_TURN_EN);
 DigitalOut bms_strobe(BMS_STROBE_EN);
+DigitalOut drl(DRL_EN);
 
 void signalFlashHandler() {
     while (true) {
@@ -56,7 +57,7 @@ void signalFlashHandler() {
             leftTurnSignal = false;
             rightTurnSignal = false;
         }
-        //ThisThread::flags_wait_all(0x1);
+        ThisThread::flags_wait_all(0x1);
     }
 }
 
@@ -72,7 +73,7 @@ int main() {
     log_debug("Start main()");
 
     signalFlashThread.start(signalFlashHandler);
-
+    drl = 1;
     while (true) {
         log_debug("Main thread loop");
 
@@ -84,7 +85,7 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     can_struct->log(LOG_DEBUG);
     if (can_struct->headlights) {
         flashBMS = can_struct->hazards;
-        //signalFlashThread.flags_set(0x1);
+        signalFlashThread.flags_set(0x1);
 
         return;
     }
@@ -95,6 +96,6 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     flashRSignal = can_struct->right_turn_signal;
     flashHazards = can_struct->hazards;
 
-    //signalFlashThread.flags_set(0x1);
+    signalFlashThread.flags_set(0x1);
     
 }
