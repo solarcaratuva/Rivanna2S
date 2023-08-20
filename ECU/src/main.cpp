@@ -12,8 +12,8 @@
 
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
-#define MOTOR_THREAD_PERIOD    100ms
-#define POWERAUX_THREAD_PERIOD 100ms
+#define MOTOR_THREAD_PERIOD    10ms
+#define POWERAUX_THREAD_PERIOD 10ms
 
 // Can Interface
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);

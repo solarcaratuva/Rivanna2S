@@ -218,7 +218,7 @@ int main() {
 void BPSCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
     discharge_relay_status = can_struct->discharge_relay_status;
-    can_struct->log(LOG_INFO);
+    //can_struct->log(LOG_INFO);
 }
 
 void BPSCANInterface::handle(BPSError *can_struct) {
@@ -229,7 +229,7 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     if (bms_strobe) {
         has_faulted = true;
     }
-    can_struct->log(LOG_INFO);
+    //can_struct->log(LOG_INFO);
 
 
     /*
@@ -245,7 +245,7 @@ void BPSCANInterface::handle(BPSError *can_struct) {
 
 void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
     //cell_voltage_fault = false;
-    can_struct->log(LOG_DEBUG);
+    //can_struct->log(LOG_DEBUG);
     log_debug("Recieved BPSCellVoltage Frame");
     if (BPS_Cell_Messages < 3) {
         BPS_Cell_Messages++;
