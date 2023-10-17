@@ -9,7 +9,6 @@
 #include <math.h>
 #include <mbed.h>
 #include <rtos.h>
-#include <unordered_map>
 
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
@@ -108,19 +107,55 @@ void poweraux_message_handler() {
     }
 }
 
-void CreateHashmap {
-    std::unordered_map<int, std::string> statusMessages{
-    {200, "Success"},
-    {404, "This is not the page you're looking for"},
-    {403, "Unauthorized"},
-    {418, "I'm a teapot"},
-  };
+/*switch(expression) {
+  case x:
+    // code block
+    break;
+  case y:
+    // code block
+    break;
+  default:
+    // code block
+}*/
+
+void switch_case() {
+    while (true) {
+        switch(message.id){
+            case ECUMotorCommands_MESSAGE_ID
+                break;
+            case ECUPowerAuxCommands_MESSAGE_ID
+                break;
+            case PowerAuxError_MESSAGE_ID
+                break;
+            case SolarCurrent_MESSAGE_ID
+                break;
+            case SolarTemp_MESSAGE_ID
+                break;
+            case SolarVoltage_MESSAGE_ID
+                break;
+            case SolarPhoto_MESSAGE_ID
+                break;
+            case MotorControllerPowerStatus_MESSAGE_ID or case MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID
+                break;
+            case MotorControllerDriveStatus_MESSAGE_ID or case MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID
+                break;
+            case MotorControllerError_MESSAGE_ID or case MotorControllerError_AUX_BUS_MESSAGE_ID
+                break;
+            case BPSPackInformation_MESSAGE_ID
+                break; 
+            case BPSError_MESSAGE_ID
+                break;
+            case BPSCellVoltage_MESSAGE_ID
+                break;
+            case BPSCellTemperature_MESSAGE_ID
+                break;
+        }
+    }
 }
+
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
-
-    // create hashmap
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
@@ -166,6 +201,7 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
 // set hierachy based on message.id -> convert to interval time
 // new CAN message ->
 // hashmap {message.id, message + /0 + time}
+// switch statement for message.id
 // lock
 // ECUMOTORCMDS: 01010101    17171s
 // unlock
