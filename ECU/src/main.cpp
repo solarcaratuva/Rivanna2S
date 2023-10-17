@@ -10,6 +10,14 @@
 #include <mbed.h>
 #include <rtos.h>
 
+// for token bucket
+#include "algorithms/token_bucket.h"
+#include "threads/thread.h"
+#include "time/timestamp.h"
+#include <atomic>
+#include <iostream>
+// end for token bucket
+
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
 #define MOTOR_THREAD_PERIOD    10ms
@@ -134,7 +142,39 @@ Interval Time = 1 Hz
 ECUPowerAuxCommands - blinkers, hazards
 */
 
-void switch_case() {
+
+ 
+#include <atomic>
+#include <chrono>
+#include <iostream>
+
+void Token_Handler(int uintTokenRate, int uintTokenTotal){
+    // start bucket with total number of tokens
+    // bucket_total = uintTokenTotal
+    
+    // if token_rate == true and bucket_total < token_total
+        // bucket_total = bucket_total + 1
+    
+    // if tokens present in bucket bucket_total != 0
+        // send message through
+        // bucket_total = bucket_total - 1
+    
+    // elif tokens is not present in bucket
+        // drop message
+        
+}
+
+int main_token_handler(){
+    const auto current_time = std::chrono::system_clock::now();
+    int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(                  current_time.time_since_epoch()).count();
+    std::cout << current_time_seconds;
+ 
+    /*std::cout << "seconds since epoch: "
+              << std::chrono::duration_cast<std::chrono::seconds>(                  p1.time_since_epoch()).count() << '\n';*/
+}
+
+
+void determine_importance() {
     while (true) {
         switch(message.id){
             case ECUMotorCommands_MESSAGE_ID
@@ -142,6 +182,7 @@ void switch_case() {
             case ECUPowerAuxCommands_MESSAGE_ID
                 break;
             case PowerAuxError_MESSAGE_ID
+                // send through
                 break;
             case SolarCurrent_MESSAGE_ID
                 break;
@@ -156,10 +197,12 @@ void switch_case() {
             case MotorControllerDriveStatus_MESSAGE_ID or case MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID
                 break;
             case MotorControllerError_MESSAGE_ID or case MotorControllerError_AUX_BUS_MESSAGE_ID
+                // send through
                 break;
             case BPSPackInformation_MESSAGE_ID
                 break; 
             case BPSError_MESSAGE_ID
+                // send through
                 break;
             case BPSCellVoltage_MESSAGE_ID
                 break;
