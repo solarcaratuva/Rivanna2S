@@ -3,30 +3,18 @@
 
 class TokenBucket {
 public:
-    TokenBucket(int capacity, int refillRate) : capacity_(capacity), refillRate_(refillRate), tokens_(capacity) {}
+    // bucket_capacity represents the current number of tokens in the bucket while total_capacity is the maximum number of tokens
+    TokenBucket(int token_capacity, int refill_rate) : bucket_capacity(capacity), refillRate_(refillRate), total_capacity(capacity) {}
 
-    bool tryConsume(int tokens) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        refillTokens();
-        if (tokens_ >= tokens) {
-            tokens_ -= tokens;
-            return true;
-        }
-        return false;
-    }
 
 private:
-    void refillTokens() {
-        auto now = std::chrono::steady_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastRefillTime_);
-        int tokensToAdd = elapsed.count() * refillRate_ / 1000;
-        tokens_ = std::min(capacity_, tokens_ + tokensToAdd);
-        lastRefillTime_ = now;
-    }
+    int get_current_time() {
+        const auto current_time = std::chrono::system_clock::now();
+        int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
 
-    int capacity_;
-    int refillRate_;
-    int tokens_;
-    std::chrono::steady_clock::time_point lastRefillTime_ = std::chrono::steady_clock::now();
-    std::mutex mutex_;
+        return current_time_seconds;
+    }
+    bool past_interval_time(int refill_rate) {
+        if ()
+    }
 };
