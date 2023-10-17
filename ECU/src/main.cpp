@@ -106,17 +106,33 @@ void poweraux_message_handler() {
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
     }
 }
+/*Hierarchy (Decreasing in importance; Different group symbolized by new line)
+Currently set at 250000 Hz
 
-/*switch(expression) {
-  case x:
-    // code block
-    break;
-  case y:
-    // code block
-    break;
-  default:
-    // code block
-}*/
+Interval Time = 0
+PowerAuxError
+MotorControllerError
+BPSError
+
+Interval Time = 5000 Hz
+ECUMotorCommands - throttle, reverse, cruise control speed
+
+Interval Time = 1000 Hz
+SolarCurrent
+SolarTemp
+SolarVoltage
+SolarPhoto
+BPSPackInformation
+BPSCellVoltage
+BPSCellTemperature
+
+Interval Time = 10 Hz
+MotorControllerPowerStatus - battery voltage, battery current
+MotorControllerDriveStatus - positions, motor status
+
+Interval Time = 1 Hz
+ECUPowerAuxCommands - blinkers, hazards
+*/
 
 void switch_case() {
     while (true) {
