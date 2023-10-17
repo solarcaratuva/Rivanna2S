@@ -9,6 +9,7 @@
 #include <math.h>
 #include <mbed.h>
 #include <rtos.h>
+#include <unordered_map>
 
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
@@ -107,9 +108,19 @@ void poweraux_message_handler() {
     }
 }
 
+void CreateHashmap {
+    std::unordered_map<int, std::string> statusMessages{
+    {200, "Success"},
+    {404, "This is not the page you're looking for"},
+    {403, "Unauthorized"},
+    {418, "I'm a teapot"},
+  };
+}
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
+
+    // create hashmap
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
