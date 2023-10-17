@@ -151,8 +151,13 @@ ECUPowerAuxCommands - blinkers, hazards
 void Token_Handler(int uintTokenRate, int uintTokenTotal){
     // start bucket with total number of tokens
     // bucket_total = uintTokenTotal
-    
-    // if token_rate == true and bucket_total < token_total
+    // if first time, then last_time = 0
+    // else last_time = &last_time
+
+    ECUCANRateLimiter::past_interval_time(last_time, uintTokenTotal, &last_time, &past_interval)
+
+    // past_interval_time(last_time, uintTokenRate, &last_time,)
+    // if past_interval_time == true and bucket_total < token_total
         // bucket_total = bucket_total + 1
     
     // if tokens present in bucket bucket_total != 0
@@ -163,17 +168,6 @@ void Token_Handler(int uintTokenRate, int uintTokenTotal){
         // drop message
         
 }
-
-int main_token_handler(){
-    // Gets Current Time
-    //const auto current_time = std::chrono::system_clock::now();
-    //int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
-    
- 
-    /*std::cout << "seconds since epoch: "
-              << std::chrono::duration_cast<std::chrono::seconds>(                  p1.time_since_epoch()).count() << '\n';*/
-}
-
 
 void determine_importance() {
     while (true) {

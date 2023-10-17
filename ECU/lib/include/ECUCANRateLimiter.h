@@ -8,13 +8,16 @@ public:
 
 
 private:
-    int get_current_time() {
+    bool past_interval_time(int last_time, int refill_rate, int* last_time, int* past_interval) {
         const auto current_time = std::chrono::system_clock::now();
         int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
-
-        return current_time_seconds;
-    }
-    bool past_interval_time(int refill_rate) {
-        if ()
+        if ((current_time_seconds - last_time) >= refill_rate) {
+            *last_time = current_time_seconds;
+            *past_interval = true;
+        }
+        else {
+            *last_time = last_time;
+            *past_interval = false;
+        }
     }
 };
