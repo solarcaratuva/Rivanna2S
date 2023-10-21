@@ -214,7 +214,6 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
 }
 
 
-<<<<<<< HEAD
 while (true) {
     if message.id == "MOTORECU" {
         // do stuff
@@ -231,25 +230,7 @@ while (true) {
 
 // difference between hashmap
 // hashmap takes up too much memory, for this 
-    
 
-
-// send message to pi
-// clear hashmap
-
-// 2nd thread
-// look through hashmap and determine if interval has been reached
-// set a delay on this thread
-// send message to pi
-// clear hashmap
-
-
-
-// Use a switch case
-
-
-=======
->>>>>>> 1f7ed972191260cd673d60116dc874eeab528252
 // set hierachy based on message.id -> convert to interval time
 // new CAN message ->
 // hashmap {message.id, message + /0 + time}
