@@ -152,13 +152,38 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
 }
 
 
-// key: message id, value: message + time
-std::unordered_map<int, std::string> statusMessages{
-    {200, "Success"},
-    {404, "This is not the page you're looking for"},
-    {403, "Unauthorized"},
-    {418, "I'm a teapot"},
-  };
+while (true) {
+    if message.id == "MOTORECU" {
+        // do stuff
+        if time_since_1970 % motor_ecu_interval == 0 {
+            // send message to pi
+        } else {
+            last_motor_ecu_message = "message"
+        }
+    }
+}
+
+// difference between current code
+// this is rate limiting while current code is not, which overwhelms the pi
+
+// difference between hashmap
+// hashmap takes up too much memory, for this 
+    
+
+
+// send message to pi
+// clear hashmap
+
+// 2nd thread
+// look through hashmap and determine if interval has been reached
+// set a delay on this thread
+// send message to pi
+// clear hashmap
+
+
+
+// Use a switch case
+
 
 // set hierachy based on message.id -> convert to interval time
 // new CAN message ->
