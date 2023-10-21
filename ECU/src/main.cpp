@@ -152,6 +152,14 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
 }
 
 
+// key: message id, value: message + time
+std::unordered_map<int, std::string> statusMessages{
+    {200, "Success"},
+    {404, "This is not the page you're looking for"},
+    {403, "Unauthorized"},
+    {418, "I'm a teapot"},
+  };
+
 // set hierachy based on message.id -> convert to interval time
 // new CAN message ->
 // hashmap {message.id, message + /0 + time}
