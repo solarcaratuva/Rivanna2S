@@ -20,9 +20,11 @@
  */
 class MainCANInterface : public CANInterface {
   public:
-    MainCANInterface(PinName rd, PinName td, PinName standby_pin);
+    MainCANInterface(PinName rd, PinName td, PinName standby_pin, PinName uart_rx, PinName uart_tx);
 
     int send(CANStruct *can_struct);
+    int send_message(CANMessage *message);
+    void send_to_pi(CANMessage *message, uint16_t message_id);
 
     virtual void handle(ECUMotorCommands *can_struct) {}
     virtual void handle(ECUPowerAuxCommands *can_struct) {}
@@ -41,6 +43,9 @@ class MainCANInterface : public CANInterface {
 
   private:
     void message_handler() override;
+    PinName uartTX;
+    PinName uartRX;
+    //UnbufferedSerial raspberry_pi;
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define BPS_CAN_INTERFACE_H
 
 #include "BPSCANStructs.h"
+#include "ECUCANStructs.h"
 #include "CANInterface.h"
 
 class BPSCANInterface : public CANInterface {
@@ -10,10 +11,10 @@ class BPSCANInterface : public CANInterface {
     void handle(BPSPackInformation *can_struct);
     void handle(BPSError *can_struct);
     void handle(BPSCellVoltage *can_struct);
-    void handle(BPSCellTemperature *can_struct);
-
+    int send(CANStruct *can_struct);
   private:
     void message_handler() override;
+    void message_forwarder(CANMessage *message);
 };
 
 #endif

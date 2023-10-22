@@ -16,6 +16,8 @@ class MotorControllerCANInterface : public CANInterface {
 
   private:
     void message_handler() override;
+    void message_forwarder(CANMessage *message);
+    
     Thread bus_status_thread;
     void check_bus_status();
 };
