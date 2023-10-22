@@ -166,8 +166,8 @@ void Token_Handler(int uintTokenRate, int uintTokenTotal){
 
 int main_token_handler(){
     const auto current_time = std::chrono::system_clock::now();
-    int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(                  current_time.time_since_epoch()).count();
-    std::cout << current_time_seconds;
+    int current_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
+    
  
     /*std::cout << "seconds since epoch: "
               << std::chrono::duration_cast<std::chrono::seconds>(                  p1.time_since_epoch()).count() << '\n';*/
