@@ -1,0 +1,9 @@
+{
+    "macros": ["YOUR_MACRO=VALUE"],
+    "target_overrides": {
+        "*": {
+            "target.features_add": ["SOME_FEATURE"],
+            "target.components_add": ["SOME_COMPONENT"]
+        }
+    }
+}
