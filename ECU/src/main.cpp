@@ -11,11 +11,16 @@
 #include <rtos.h>
 
 // for token bucket
+#include "ECUCANRateLimiter.h/TokenBucket"
 #include "algorithms/token_bucket.h"
 #include "threads/thread.h"
 #include "time/timestamp.h"
 #include <atomic>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include "message_id_frequency"
+using namespace std
 // end for token bucket
 
 #define LOG_LEVEL              LOG_DEBUG
@@ -114,35 +119,6 @@ void poweraux_message_handler() {
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
     }
 }
-/*Hierarchy (Decreasing in importance; Different group symbolized by new line)
-Currently set at 250000 Hz
-
-Interval Time = 0
-PowerAuxError
-MotorControllerError
-BPSError
-
-Interval Time = 5000 Hz
-ECUMotorCommands - throttle, reverse, cruise control speed
-
-Interval Time = 1000 Hz
-SolarCurrent
-SolarTemp
-SolarVoltage
-SolarPhoto
-BPSPackInformation
-BPSCellVoltage
-BPSCellTemperature
-
-Interval Time = 10 Hz
-MotorControllerPowerStatus - battery voltage, battery current
-MotorControllerDriveStatus - positions, motor status
-
-Interval Time = 1 Hz
-ECUPowerAuxCommands - blinkers, hazards
-*/
-
-
  
 #include <atomic>
 #include <chrono>
@@ -166,10 +142,7 @@ void Token_Handler(int uintTokenRate, int uintTokenTotal){
     
     // elif tokens is not present in bucket
         // drop message
-        
-}
 
-void determine_importance() {
     while (true) {
         switch(message.id){
             case ECUMotorCommands_MESSAGE_ID
@@ -207,6 +180,24 @@ void determine_importance() {
     }
 }
 
+//Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
+//Doesn't include error message token buckets - those will be sent straight through
+void init_token_buckets() {
+    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1, int 1);
+    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 1, int 2);
+    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 1, int 2);
+    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 1, int 2);  
+}
+
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
@@ -216,7 +207,7 @@ int main() {
 
     while (true) {
         log_debug("Main thread loop");
-
+ 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
