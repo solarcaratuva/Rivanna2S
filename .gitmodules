@@ -1,3 +1,6 @@
 [submodule "Common/src/dbc/messages"]
 	path = Common/src/dbc/messages
 	url = https://github.com/solarcaratuva/CAN-messages.git
+[submodule "test/googletest"]
+	path = test/googletest
+	url = https://github.com/google/googletest.git
