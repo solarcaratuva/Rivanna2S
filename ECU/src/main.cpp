@@ -10,12 +10,14 @@
 #include <mbed.h>
 #include <rtos.h>
 
+
 // for token bucket
 #include "ECUCANRateLimiter.h/TokenBucket"
 #include "algorithms/token_bucket.h"
 #include "threads/thread.h"
 #include "time/timestamp.h"
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -41,6 +43,9 @@ ECUPowerAuxCommands to_poweraux;
 // Message Sending Threads
 Thread motor_thread;
 Thread poweraux_thread;
+
+// Drop or Send Thread
+Thread drop_or_send;
 
 int charge_relay_status;
 
@@ -119,18 +124,33 @@ void poweraux_message_handler() {
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
     }
 }
- 
-#include <atomic>
-#include <chrono>
-#include <iostream>
 
-void Token_Handler(int uintTokenRate, int uintTokenTotal){
+
+//Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
+//Doesn't include error message token buckets - those will be sent straight through
+void init_token_buckets() {
+    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 1, int 0.1);
+    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1, int 1);
+    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1, int 1);
+    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1, int 1);
+    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 1, int 2);
+    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 1, int 2);
+    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 1, int 2);  
+}
+
+void drop_or_send_message(){
+    init_token_buckets();
+
     // start bucket with total number of tokens
     // bucket_total = uintTokenTotal
     // if first time, then last_time = 0
     // else last_time = &last_time
-
-    ECUCANRateLimiter::past_interval_time(last_time, uintTokenTotal, &last_time, &past_interval)
 
     // past_interval_time(last_time, uintTokenRate, &last_time,)
     // if past_interval_time == true and bucket_total < token_total
@@ -180,23 +200,6 @@ void Token_Handler(int uintTokenRate, int uintTokenTotal){
     }
 }
 
-//Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
-//Doesn't include error message token buckets - those will be sent straight through
-void init_token_buckets() {
-    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1, int 1);
-    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 1, int 2);
-    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 1, int 2);
-    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 1, int 2);  
-}
 
 int main() {
     log_set_level(LOG_LEVEL);
@@ -209,6 +212,9 @@ int main() {
         log_debug("Main thread loop");
  
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        //Thread that constantly pulls CAN Messages
+        //Lock can message
+        //Thread that determines whether message should be dropped or sent
     }
 }
 
@@ -242,7 +248,7 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
     }
 }
 
-
+/*
 while (true) {
     if message.id == "MOTORECU" {
         // do stuff
@@ -252,7 +258,7 @@ while (true) {
             last_motor_ecu_message = "message"
         }
     }
-}
+}*/
 
 // difference between current code
 // this is rate limiting while current code is not, which overwhelms the pi
