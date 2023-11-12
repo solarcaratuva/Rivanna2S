@@ -6,6 +6,7 @@
 #include "pindef.h"
 #include <mbed.h>
 #include <rtos.h>
+#include "SignalFlashHandler.h"
 
 #define LOG_LEVEL          LOG_DEBUG
 #define MAIN_LOOP_PERIOD   1s
@@ -26,47 +27,21 @@ DigitalOut rightTurnSignal(RIGHT_TURN_EN);
 DigitalOut bms_strobe(BMS_STROBE_EN);
 DigitalOut drl(DRL_EN);
 
+SignalFlashHandler signalFlashHandler1(brake_lights, leftTurnSignal, rightTurnSignal, bms_strobe);
+
+
+
 void signalFlashHandler() {
-    while (true) {
-        //log_debug("flash_bms: %d", flashBMS);
-        log_debug("Flash thread");
-        if (!flashBMS) {
-            bms_strobe = 0;
-        }
-        if (flashHazards || flashLSignal || flashRSignal || flashBMS) {
-            if (flashBMS) {
-                bms_strobe = !bms_strobe;
-            }
-            if (flashHazards) {
-                bool leftTurnSignalState = leftTurnSignal;
-                leftTurnSignal = !leftTurnSignalState;
-                rightTurnSignal = !leftTurnSignalState;
-            } else if (flashLSignal) {
-                leftTurnSignal = !leftTurnSignal;
-                rightTurnSignal = false;
-            } else if (flashRSignal) {
-                rightTurnSignal = !rightTurnSignal;
-                leftTurnSignal = false;
-            } else {
-                leftTurnSignal = false;
-                rightTurnSignal = false;
-            }
-
-            ThisThread::sleep_for(FLASH_PERIOD);
-        } else {
-            leftTurnSignal = false;
-            rightTurnSignal = false;
-        }
+    signalFlashHandler1.set_callbacks([&]()
+    {
+        ThisThread::sleep_for(FLASH_PERIOD);
+    }, [&]()
+    {
         ThisThread::flags_wait_all(0x1);
-    }
-}
+    });
+    signalFlashHandler1.loop();
 
-AnalogIn fan_tach(FanTach);
-AnalogIn brake_light_current(BRAKE_LIGHT_CURRENT);
-AnalogIn headlight_current(DRL_CURRENT);
-AnalogIn bms_strobe_current(BMS_STROBE_CURRENT);
-AnalogIn left_turn_current(LEFT_TURN_CURRENT);
-AnalogIn right_turn_current(RIGHT_TURN_CURRENT);
+}
 
 int main() {
     log_set_level(LOG_LEVEL);
@@ -87,7 +62,6 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
         flashBMS = can_struct->hazards;
         signalFlashThread.flags_set(0x1);
 
-        return;
     }
 
     brake_lights = can_struct->brake_lights;
@@ -95,6 +69,8 @@ void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
     flashLSignal = can_struct->left_turn_signal;
     flashRSignal = can_struct->right_turn_signal;
     flashHazards = can_struct->hazards;
+
+    signalFlashHandler1.updateState(flashHazards, flashLSignal, flashRSignal, flashBMS);
 
     signalFlashThread.flags_set(0x1);
     
