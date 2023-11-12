@@ -12,7 +12,7 @@
 
 
 // for token bucket
-#include "ECUCANRateLimiter.h/TokenBucket"
+#include "ECUCANRateLimiter.h"
 #include "algorithms/token_bucket.h"
 #include "threads/thread.h"
 #include "time/timestamp.h"
@@ -23,6 +23,7 @@
 #include <string>
 #include "message_id_frequency"
 using namespace std
+
 // end for token bucket
 
 #define LOG_LEVEL              LOG_DEBUG
@@ -118,6 +119,9 @@ void poweraux_message_handler() {
         //to_poweraux.brake_lights = 1;
         //to_poweraux.hazards = 1;
 
+        auto result = ecu_power_aux_commands_token_bucket.past_interval_time(last_time, refill_rate);
+        int last_time;
+        bool past_interval;
 
         vehicle_can_interface.send(&to_poweraux);
         to_poweraux.log(LOG_DEBUG);
@@ -126,7 +130,6 @@ void poweraux_message_handler() {
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
     }
 }
-
 
 //Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
 //Doesn't include error message token buckets - those will be sent straight through
@@ -146,25 +149,14 @@ void init_token_buckets() {
     TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 1, int 2);  
 }
 
-void drop_or_send_message(){
-    init_token_buckets();
+    // if hazards = true and blinkers = true
+    /*if (can_struct->headlights) {
+        flashBMS = can_struct->hazards;
+        signalFlashThread.flags_set(0x1);
 
-    // start bucket with total number of tokens
-    // bucket_total = uintTokenTotal
-    // if first time, then last_time = 0
-    // else last_time = &last_time
-
-    // past_interval_time(last_time, uintTokenRate, &last_time,)
-    // if past_interval_time == true and bucket_total < token_total
-        // bucket_total = bucket_total + 1
-    
-    // if tokens present in bucket bucket_total != 0
-        // send message through
-        // bucket_total = bucket_total - 1
-    
-    // elif tokens is not present in bucket
-        // drop message
-
+        return;
+    }*/
+/*
     while (true) {
         switch(message.id){
             case ECUMotorCommands_MESSAGE_ID
@@ -199,15 +191,16 @@ void drop_or_send_message(){
             case BPSCellTemperature_MESSAGE_ID
                 break;
         }
-    }
-
-    ThisThread::sleep_for(SEND_CAN_MESSAGE_PERIOD);
-}
+    }*/
 
 
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
+
+    // Initialize Token Buckets
+    init_token_buckets();
+    //last time = default
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
@@ -218,11 +211,10 @@ int main() {
  
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-        //Thread that constantly pulls CAN Messages
-        //Lock can message
-        //Thread that determines whether message should be dropped or sent
     }
 }
+
+//Incoming messages
 
 void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     RPM = can_struct->motor_rpm;
@@ -231,6 +223,8 @@ void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 void ECUCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
 }
+
+// Make handlers for other CAN messages
 
 void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
     if (uartTX != NC) {
