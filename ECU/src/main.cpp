@@ -27,6 +27,7 @@ using namespace std
 #define MAIN_LOOP_PERIOD       1s
 #define MOTOR_THREAD_PERIOD    10ms
 #define POWERAUX_THREAD_PERIOD 10ms
+#define SEND_CAN_MESSAGE_PERIOD 10ms
 
 // Can Interface
 ECUCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
@@ -41,6 +42,7 @@ ECUPowerAuxCommands to_poweraux;
 // Message Sending Threads
 Thread motor_thread;
 Thread poweraux_thread;
+Thread send_can_message_thread;
 
 int charge_relay_status;
 
@@ -178,6 +180,8 @@ void Token_Handler(int uintTokenRate, int uintTokenTotal){
                 break;
         }
     }
+
+    ThisThread::sleep_for(SEND_CAN_MESSAGE_PERIOD);
 }
 
 //Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
@@ -204,10 +208,12 @@ int main() {
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
+    send_can_message_thread.start(Token_Handler);
 
     while (true) {
         log_debug("Main thread loop");
  
+        // 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
