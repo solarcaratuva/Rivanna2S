@@ -216,7 +216,7 @@ int main() {
     while (true) {
         log_debug("Main thread loop");
  
-        // 
+
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
         //Thread that constantly pulls CAN Messages
         //Lock can message
