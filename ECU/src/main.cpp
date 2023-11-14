@@ -119,12 +119,34 @@ void poweraux_message_handler() {
         //to_poweraux.brake_lights = 1;
         //to_poweraux.hazards = 1;
 
+        // Get value of last_time and refill rate
+        double last_time = ecu_power_aux_commands_token_bucket.get_last_time();
+        int refill_rate = ecu_power_aux_commands_token_bucket.get_refill_rate()
+
+        // Determine whether the time difference is past the set interval
         auto result = ecu_power_aux_commands_token_bucket.past_interval_time(last_time, refill_rate);
         int last_time;
         bool past_interval;
 
-        vehicle_can_interface.send(&to_poweraux);
-        to_poweraux.log(LOG_DEBUG);
+        // Special use case for if hazards = true and blinkers = true
+        if (can_struct->headlights) {
+            flashBMS = can_struct->hazards;
+            signalFlashThread.flags_set(0x1);
+
+            return;
+        }
+
+        // If token left in bucket (e.g., if past interval), then send message to raspberry pi
+        if (past_interval) {
+            ecu_power_aux_commands_token_bucket.set_last_time(last_time);
+            vehicle_can_interface.send(&to_poweraux);
+            to_poweraux.log(LOG_DEBUG);
+            log_debug("POWER AUX MESSAGE SENT THROUGH");
+        }
+
+        if (!past_interval) {
+            log_debug("POWER AUX MESSAGE DROPPED");
+        }
 
         // Sleep
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
@@ -134,64 +156,20 @@ void poweraux_message_handler() {
 //Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
 //Doesn't include error message token buckets - those will be sent straight through
 void init_token_buckets() {
-    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 1, int 0.1);
-    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1, int 1);
-    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1, int 1);
-    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1, int 1);
-    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 1, int 2);
-    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 1, int 2);
-    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 1, int 2);  
+    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 0.1);
+    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 0.1);
+    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 0.1);
+    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1);
+    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1);
+    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1);
+    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1);
+    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1);
+    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1);
+    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1);
+    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 2);
+    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 2);
+    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 2);  
 }
-
-    // if hazards = true and blinkers = true
-    /*if (can_struct->headlights) {
-        flashBMS = can_struct->hazards;
-        signalFlashThread.flags_set(0x1);
-
-        return;
-    }*/
-/*
-    while (true) {
-        switch(message.id){
-            case ECUMotorCommands_MESSAGE_ID
-                break;
-            case ECUPowerAuxCommands_MESSAGE_ID
-                break;
-            case PowerAuxError_MESSAGE_ID
-                // send through
-                break;
-            case SolarCurrent_MESSAGE_ID
-                break;
-            case SolarTemp_MESSAGE_ID
-                break;
-            case SolarVoltage_MESSAGE_ID
-                break;
-            case SolarPhoto_MESSAGE_ID
-                break;
-            case MotorControllerPowerStatus_MESSAGE_ID or case MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID
-                break;
-            case MotorControllerDriveStatus_MESSAGE_ID or case MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID
-                break;
-            case MotorControllerError_MESSAGE_ID or case MotorControllerError_AUX_BUS_MESSAGE_ID
-                // send through
-                break;
-            case BPSPackInformation_MESSAGE_ID
-                break; 
-            case BPSError_MESSAGE_ID
-                // send through
-                break;
-            case BPSCellVoltage_MESSAGE_ID
-                break;
-            case BPSCellTemperature_MESSAGE_ID
-                break;
-        }
-    }*/
 
 
 int main() {

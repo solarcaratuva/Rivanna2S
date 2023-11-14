@@ -3,7 +3,7 @@
 #include <tuple>
  
  
-//change this to be more accurate than just seconds
+// Change this to be more accurate than just seconds
 std::tuple<int, bool> TokenBucket::past_interval_time(int last_time, int refill_rate) {
     if (last_time == 0) {
         log_debug("First Time for this CAN Message");
@@ -21,6 +21,22 @@ std::tuple<int, bool> TokenBucket::past_interval_time(int last_time, int refill_
     }
     return std::make_tuple(last_time, past_interval);
 }
+
+// Get value of last time
+double TokenBucket::get_last_time(){
+    return last_time;
+}
+
+// Set value of last time
+void TokenBucket::set_last_time(double new_last_time){
+    last_time = new_last_time;
+}
+
+// Get value of refill rate
+int TokenBucket::get_refill_rate(){
+    return refill_rate;
+}
+
 
 // Re-implementation of TokenBucket, not yet formatted
 
