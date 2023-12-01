@@ -8,7 +8,7 @@
 #include <rtos.h>
 
 
-SignalFlashHandler::SignalFlashHandler(DigitalOut& leftTurnSignal, DigitalOut& rightTurnSignal, DigitalOut& bms_strobe)
+SignalFlashHandler::SignalFlashHandler(DigitalOut& brake_lights, DigitalOut& leftTurnSignal, DigitalOut& rightTurnSignal, DigitalOut& bms_strobe)
     : leftTurnSignal(false), rightTurnSignal(false), bms_strobe(false), sleep(sleep), wait(wait){
 }
 
