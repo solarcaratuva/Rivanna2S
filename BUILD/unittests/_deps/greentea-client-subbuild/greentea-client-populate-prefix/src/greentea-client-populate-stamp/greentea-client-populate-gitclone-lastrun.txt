@@ -1,3 +1,0 @@
-repository='https://github.com/ARMmbed/greentea-client.git'
-module=''
-tag='origin'
