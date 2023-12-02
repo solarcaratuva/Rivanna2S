@@ -8,6 +8,7 @@
 #include <rtos.h>
 
 
+// TODO: Create mock class for digital outs here
 SignalFlashHandler::SignalFlashHandler(DigitalOut& brake_lights, DigitalOut& leftTurnSignal, DigitalOut& rightTurnSignal, DigitalOut& bms_strobe)
     : brake_lights(brake_lights), leftTurnSignal(leftTurnSignal), rightTurnSignal(rightTurnSignal), bms_strobe(bms_strobe){
 }
