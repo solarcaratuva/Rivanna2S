@@ -9,7 +9,7 @@
 
 
 SignalFlashHandler::SignalFlashHandler(DigitalOut& brake_lights, DigitalOut& leftTurnSignal, DigitalOut& rightTurnSignal, DigitalOut& bms_strobe)
-    : leftTurnSignal(false), rightTurnSignal(false), bms_strobe(false), sleep(sleep), wait(wait){
+    : brake_lights(brake_lights), leftTurnSignal(leftTurnSignal), rightTurnSignal(rightTurnSignal), bms_strobe(bms_strobe){
 }
 
 void SignalFlashHandler::set_callbacks(std::function<void()> sleep, std::function<void()> wait){

@@ -11,6 +11,7 @@ public:
     DigitalOut leftTurnSignal;
     DigitalOut rightTurnSignal;
     DigitalOut bms_strobe;
+    DigitalOut brake_lights;
     std::function<void()> sleep, wait;
     bool flashHazards, flashLSignal, flashRSignal, flashBMS;
     // DigitalOut can be mocked, to test
