@@ -52,7 +52,7 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
-TokenBucket motor_token_bucket(1, 1000, vehicle_can_interface.send);
+TokenBucket motor_token_bucket(1, 1000, DriverCANInterface::send_to_pi());
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -152,7 +152,7 @@ int main() {
         to_motor.regen = regenValue;
 
         to_motor.forward_en = !reverseEnabled;
-        to_motor.reverse_en = reverseEnabled; 
+        to_motor.reverse_en = reverseEnabled;
 
         to_motor.motor_on = true;
 
@@ -161,6 +161,10 @@ int main() {
 
         //Send to handler to determine whether the message should be sent to pi
         motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
+
+        //Send to_motor message to handler
+        
+        vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
