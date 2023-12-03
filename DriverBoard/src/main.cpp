@@ -155,7 +155,7 @@ int main() {
         to_motor.reverse_en = reverseEnabled;
 
         to_motor.motor_on = true;
-
+ 
         motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
 
         vehicle_can_interface.send(&to_motor);

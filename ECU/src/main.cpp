@@ -159,28 +159,6 @@ void poweraux_message_handler() {
 // to the DriverBoard folder, then declared as a global variable and used in each of the handle functions
 // for the different types of can messages
 
-// should also move the ECUCANRateLimiter files to DriverBoard folder
-// also move the handle functions at the bottom and have them in the DriverBoard folder
-
-
-// switch statement for message id
-// if message id is in the list of message ids, then do the token bucket stuff
-// void rate_limiter_message_handler(CANMessage message) {
-//     while (true) {
-//         TokenBucket motor_ecu_token_bucket(1, 1000, send_to_pi);
-//         TokenBucket bps_token_bucket = TokenBucket(1, 1000, send_to_pi);
-//         TokenBucket bms_token_bucket = TokenBucket(1, 1000, send_to_pi);
-//         switch(message.id) {
-//             case message.id == "MOTORECU":
-//                 motor_ecu_token_bucket.handle(&message, message.id);
-//             case message.id == "BPS":
-//                 bps_token_bucket.handle(&message, message.id);
-//             case message.id == "BMS":
-//                 bms_token_bucket.handle(&message, message.id);
-//         }
-//     }
-// }
-
 
 int main() {
     log_set_level(LOG_LEVEL);
