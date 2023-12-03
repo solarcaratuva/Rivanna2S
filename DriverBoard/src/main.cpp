@@ -50,6 +50,7 @@ const bool LOG_BPS_PACK_INFORMATION = true;
 const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
+int rpm = 0;
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -83,25 +84,25 @@ void read_inputs() {
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
-    brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
+    brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && rpmPositive); //changed from brake_lights.read()
 }
 
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = ACTIVELOW_ON;
-            leftTurnSignal = ACTIVELOW_ON;
+            rightTurnSignal = true;
+            leftTurnSignal = true;
         } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = ACTIVELOW_OFF;
+            rightTurnSignal = false;
         } else {
-            leftTurnSignal = ACTIVELOW_OFF;
-            rightTurnSignal = ACTIVELOW_OFF;
+            leftTurnSignal = false;
+            rightTurnSignal = false;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -141,12 +142,16 @@ int main() {
             throttleValue = pedalValue;
             regenValue = 0;
         }
+
       
         to_motor.throttle = throttleValue;
         to_motor.regen = regenValue;
 
         to_motor.forward_en = !reverseEnabled;
         to_motor.reverse_en = reverseEnabled; 
+
+        to_motor.cruise_control_en = 0;
+        to_motor.cruise_control_speed = 0;
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
