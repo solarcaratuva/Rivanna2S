@@ -53,6 +53,7 @@ const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
 TokenBucket motor_token_bucket(1, 1000, DriverCANInterface::send_to_pi());
+TokenBucket motor_controller_token_bucket(1, 1000)
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -160,11 +161,9 @@ int main() {
         vehicle_can_interface.send(&to_motor);
 
         //Send to handler to determine whether the message should be sent to pi
+        log_debug("Sending to handler");
         motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
 
-        //Send to_motor message to handler
-        
-        vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
@@ -172,7 +171,10 @@ int main() {
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
+    motor_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
 }
+
+//Doesn't need a token bucket; should be sent straight to raspberry pi
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }

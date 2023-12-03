@@ -1,4 +1,4 @@
-Message ID, Frequency, Interval
+Message ID, Frequency, Interval (seconds)
 PowerAuxError_MESSAGE_ID,0,0
 MotorControllerError_MESSAGE_ID,0,0
 MotorControllerError_AUX_BUS_MESSAGE_ID,0,0
