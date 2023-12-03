@@ -15,8 +15,16 @@ set(TEST_SOURCES
     # Add other test files here
 )
 
+set(SOURCE_FILES
+    ../PowerAux/lib/include/SignalControl.h
+    ../PowerAux/lib/include/SignalFlashHandler.h
+    ../PowerAux/lib/src/SignalFlashHandler.cpp
+    ../PowerAux/lib/include/TestSignalControl.h
+    # Add other source files here
+)
+
 # Create the test executable
-add_executable(runUnitTests ${TEST_SOURCES})
+add_executable(runUnitTests ${TEST_SOURCES} ${SOURCE_FILES})
 
 # Link GoogleTest to the test executable
 target_link_libraries(runUnitTests gtest gtest_main)

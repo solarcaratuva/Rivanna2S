@@ -1,17 +1,9 @@
 #include "SignalFlashHandler.h"
-#include "DigitalOut.h"
-#include "Printing.h"
-#include "ThisThread.h"
-#include "log.h"
-#include "pindef.h"
-#include <mbed.h>
-#include <rtos.h>
 
 
-// TODO: Create mock class for digital outs here
-SignalFlashHandler::SignalFlashHandler(DigitalOut& brake_lights, DigitalOut& leftTurnSignal, DigitalOut& rightTurnSignal, DigitalOut& bms_strobe)
-    : brake_lights(brake_lights), leftTurnSignal(leftTurnSignal), rightTurnSignal(rightTurnSignal), bms_strobe(bms_strobe){
-}
+
+SignalFlashHandler::SignalFlashHandler(SignalControl& control) : signalControl(control) {}
+
 
 void SignalFlashHandler::set_callbacks(std::function<void()> sleep, std::function<void()> wait){
     this->sleep = sleep;
