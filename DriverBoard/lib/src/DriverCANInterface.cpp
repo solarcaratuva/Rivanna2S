@@ -7,7 +7,6 @@ DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_p
     can.frequency(250000);
 }
 
-
 int DriverCANInterface::send(CANStruct *can_struct) {
     CANMessage message;
     can_struct->serialize(&message);
@@ -40,6 +39,7 @@ int DriverCANInterface::send(CANStruct *can_struct) {
 
     return result;
 }
+
 
 void DriverCANInterface::message_handler() {
     while (true) {

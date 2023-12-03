@@ -52,6 +52,7 @@ void TokenBucket::handle(CANMessage *message, uint16_t message_id) {
     if (this->bucket > 1) {
         this->bucket -= 1;
         this->forward_callback(CANMessage *message, uint16_t message_id);
+        send_to_pi(CANMessage *message, uint16_t message_id);
     }
 }
 

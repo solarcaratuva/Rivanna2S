@@ -5,7 +5,7 @@
 #include "MotorControllerCANStructs.h"
 #include "CANInterface.h"
 
-class DriverCANInterface : public CANInterface {
+class DriverCANInterface : public MainCANInterface {
   public:
     DriverCANInterface(PinName rd, PinName td, PinName standby_pin);
     void handle(BPSError *can_struct);

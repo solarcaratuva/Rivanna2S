@@ -156,11 +156,12 @@ int main() {
 
         to_motor.motor_on = true;
 
+        vehicle_can_interface.send(&to_motor);
         motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
 
         //Send to_motor message to handler
         
-        // vehicle_can_interface.send(&to_motor);
+        // 
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
