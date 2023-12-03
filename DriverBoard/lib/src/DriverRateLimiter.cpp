@@ -1,39 +1,36 @@
-#include "ECUCANRateLimiter.h"
+#include "DriverRateLimiter.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
  
-// Re-implementation of TokenBucket, not yet formatted
+Re-implementation of TokenBucket, not yet formatted
 
-// class TokenBucket {
-// public:
-//     TokenBucket(int tokens, int time_unit, void (*forward_callback)(int), void (*drop_callback)(int)) {
-//         this->tokens = tokens;
-//         this->time_unit = time_unit;
-//         this->forward_callback = forward_callback;
-//         this->drop_callback = drop_callback;
-//         this->bucket = static_cast<float>(tokens);
-//         this->last_check = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-//     }
+class TokenBucket {
+public:
+    TokenBucket(int tokens, int time_unit, void (*forward_callback)(int)) {
+        this->tokens = tokens;
+        this->time_unit = time_unit;
+        this->forward_callback = forward_callback;
+        this->bucket = static_cast<float>(tokens);
+        this->last_check = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+    
+private:
+    int tokens;
+    int time_unit;
+    void (*forward_callback)(int);
+    void (*drop_callback)(int);
+    float bucket;
+    long long last_check;
+};
+ 
+void forward(int packet) {
+    std::cout << "Packet Forwarded: " << packet << std::endl;
+}
 
-//     void handle(int packet) 
-
-// private:
-//     int tokens;
-//     int time_unit;
-//     void (*forward_callback)(int);
-//     void (*drop_callback)(int);
-//     float bucket;
-//     long long last_check;
-// };
-// 
-// void forward(int packet) {
-//     std::cout << "Packet Forwarded: " << packet << std::endl;
-// }
-// 
-// void drop(int packet) {
-//     std::cout << "Packet Dropped: " << packet << std::endl;
-// }
+void drop(int packet) {
+    std::cout << "Packet Dropped: " << packet << std::endl;
+}
 
 TokenBucket::TokenBucket(int tokens, int time_unit, void (*forward_callback)(CANMessage *message, uint16_t message_id)) {
     this->tokens = tokens;
