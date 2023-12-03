@@ -157,7 +157,8 @@ int main() {
         to_motor.motor_on = true;
 
         //Send to_motor message to handler
-        
+
+
         vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
