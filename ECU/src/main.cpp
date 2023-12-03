@@ -47,8 +47,6 @@ Thread motor_thread;
 Thread poweraux_thread;
 Thread send_can_message_thread;
 
-// Drop or Send Thread
-Thread drop_or_send;
 
 int charge_relay_status;
 
@@ -153,23 +151,35 @@ void poweraux_message_handler() {
     }
 }
 
-//Initialize token buckets for each message id from message_id_frequency.txt file - will refer to this for intervals
-//Doesn't include error message token buckets - those will be sent straight through
-void init_token_buckets() {
-    TokenBucket ecu_motor_commands_token_bucket(string "ECUMotorCommands_MESSAGE_ID", int 0.1);
-    TokenBucket motor_controller_drive_status_token_bucket(string "MotorControllerDriveStatus_MESSAGE_ID", int 0.1);
-    TokenBucket motor_controller_drive_status_aux_bus_token_bucket(string "MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID", int 0.1);
-    TokenBucket solar_current_token_bucket(string "SolarCurrent_MESSAGE_ID", int 1);
-    TokenBucket solar_temp_token_bucket(string "SolarTemp_MESSAGE_ID", int 1);
-    TokenBucket solar_voltage_token_bucket(string "SolarVoltage_MESSAGE_ID", int 1);
-    TokenBucket solar_photo_token_bucket(string "SolarPhoto_MESSAGE_ID", int 1);
-    TokenBucket bps_pack_info_token_bucket(string "BPSPackInformation_MESSAGE_ID", int 1);
-    TokenBucket bps_cell_voltage_token_bucket(string "BPSCellVoltage_MESSAGE_ID", int 1);
-    TokenBucket bps_cell_temp_token_bucket(string "BPSCellTemperature_MESSAGE_ID", int 1);
-    TokenBucket motor_controller_power_token_bucket(string "MotorControllerPowerStatus_MESSAGE_ID", int 2);
-    TokenBucket motor_controller_power_aux_bus_token_bucket(string "MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID", int 2);
-    TokenBucket ecu_power_aux_commands_token_bucket(string "ECUPowerAuxCommands_MESSAGE_ID", int 2);  
-}
+
+
+// Reimplementation of TokenBucket stuff
+
+// Note from 12/2: TokenBucket motor_ecu_token_bucket(1, 1000, send_to_pi) should be moved 
+// to the DriverBoard folder, then declared as a global variable and used in each of the handle functions
+// for the different types of can messages
+
+// should also move the ECUCANRateLimiter files to DriverBoard folder
+// also move the handle functions at the bottom and have them in the DriverBoard folder
+
+
+// switch statement for message id
+// if message id is in the list of message ids, then do the token bucket stuff
+// void rate_limiter_message_handler(CANMessage message) {
+//     while (true) {
+//         TokenBucket motor_ecu_token_bucket(1, 1000, send_to_pi);
+//         TokenBucket bps_token_bucket = TokenBucket(1, 1000, send_to_pi);
+//         TokenBucket bms_token_bucket = TokenBucket(1, 1000, send_to_pi);
+//         switch(message.id) {
+//             case message.id == "MOTORECU":
+//                 motor_ecu_token_bucket.handle(&message, message.id);
+//             case message.id == "BPS":
+//                 bps_token_bucket.handle(&message, message.id);
+//             case message.id == "BMS":
+//                 bms_token_bucket.handle(&message, message.id);
+//         }
+//     }
+// }
 
 
 int main() {
@@ -182,7 +192,7 @@ int main() {
 
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
-    send_can_message_thread.start(Token_Handler);
+    send_can_message_thread.start(rate_limiter_message_handler);
 
     while (true) {
         log_debug("Main thread loop");
@@ -201,6 +211,11 @@ void ECUCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 void ECUCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
 }
+
+
+
+
+
 
 // Make handlers for other CAN messages
 
@@ -225,39 +240,3 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
         raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
     }
 }
-
-/*
-while (true) {
-    if message.id == "MOTORECU" {
-        // do stuff
-        if time_since_1970 % motor_ecu_interval == 0 {
-            // send message to pi
-        } else {
-            last_motor_ecu_message = "message"
-        }
-    }
-}*/
-
-// difference between current code
-// this is rate limiting while current code is not, which overwhelms the pi
-
-// difference between hashmap
-// hashmap takes up too much memory, for this 
-
-// set hierachy based on message.id -> convert to interval time
-// new CAN message ->
-// hashmap {message.id, message + /0 + time}
-// switch statement for message.id
-// lock
-// ECUMOTORCMDS: 01010101    17171s
-// unlock
-// ECUPOWERAUZ: 010101       8383s
-
-// 2nd thread
-// look through hashmap and determine if interval has been reached
-// set a delay on this thread            
-
-// take out the send to pi stuff and override 
-
-
-// put can messages here
