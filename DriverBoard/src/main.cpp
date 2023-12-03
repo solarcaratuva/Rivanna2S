@@ -52,7 +52,7 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
-TokenBucket token_bucket(100, 100, 100);
+TokenBucket motor_token_bucket(1, 1000, vehicle_can_interface.send);
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -155,7 +155,9 @@ int main() {
         to_motor.reverse_en = reverseEnabled; 
 
         to_motor.motor_on = true;
-        vehicle_can_interface.send(&to_motor);
+
+        motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
+        // vehicle_can_interface.send(&to_motor);
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
