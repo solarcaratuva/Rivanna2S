@@ -29,6 +29,15 @@ int DriverCANInterface::send(CANStruct *can_struct) {
         
     }
 
+/*
+    if (can_struct->headlights) {
+        flashBMS = can_struct->hazards;
+        signalFlashThread.flags_set(0x1);
+
+        return;
+    }
+*/
+
     return result;
 }
 
