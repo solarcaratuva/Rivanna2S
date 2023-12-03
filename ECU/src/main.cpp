@@ -186,13 +186,8 @@ int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
 
-    // Initialize Token Buckets
-    init_token_buckets();
-    //last time = default
-
     motor_thread.start(motor_message_handler);
     poweraux_thread.start(poweraux_message_handler);
-    send_can_message_thread.start(rate_limiter_message_handler);
 
     while (true) {
         log_debug("Main thread loop");
