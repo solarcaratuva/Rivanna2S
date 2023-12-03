@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
  
-Re-implementation of TokenBucket, not yet formatted
+//Re-implementation of TokenBucket, not yet formatted
 
 class TokenBucket {
 public:
@@ -32,7 +32,7 @@ void drop(int packet) {
     std::cout << "Packet Dropped: " << packet << std::endl;
 }
 
-TokenBucket::TokenBucket(int tokens, int time_unit, void (*forward_callback)(CANMessage *message, uint16_t message_id)) {
+TokenBucket::TokenBucket(int tokens, int time_unit, void (*forward_callback)) {
     this->tokens = tokens;
     this->time_unit = time_unit;
     this->forward_callback = forward_callback;
@@ -49,9 +49,10 @@ void TokenBucket::handle(CANMessage *message, uint16_t message_id) {
         this->bucket = this->tokens;
     }
 
-    if {
+    if (this->bucket > 1) {
         this->bucket -= 1;
         this->forward_callback(CANMessage *message, uint16_t message_id);
+        send_to_pi(CANMessage *message, uint16_t message_id);
     }
 }
 
