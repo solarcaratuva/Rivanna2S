@@ -32,6 +32,14 @@ void drop(int packet) {
     std::cout << "Packet Dropped: " << packet << std::endl;
 }
 
+TokenBucket::TokenBucket(int tokens, int time_unit, void (*forward_callback)(CANMessage *message, uint16_t message_id)) {
+    this->tokens = tokens;
+    this->time_unit = time_unit;
+    this->forward_callback = forward_callback;
+    this->bucket = static_cast<float>(tokens);
+    this->last_check = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 void TokenBucket::handle(CANMessage *message, uint16_t message_id) {
     auto current = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     auto time_passed = current - this->last_check;

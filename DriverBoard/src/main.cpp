@@ -1,4 +1,5 @@
 #include "DriverCANInterface.h"
+#include "DriverRateLimiter.h"
 #include "Printing.h"
 #include "ThisThread.h"
 #include "ECUCANStructs.h"
@@ -50,6 +51,8 @@ const bool LOG_BPS_PACK_INFORMATION = true;
 const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
+
+TokenBucket token_bucket(100, 100, 100);
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -106,6 +109,9 @@ void signalFlashHandler() {
         ThisThread::sleep_for(FLASH_PERIOD);
     }
 }
+
+// get message, send to handle function, handle function sends to pi
+
 
 int main() {
     log_set_level(LOG_LEVEL);
