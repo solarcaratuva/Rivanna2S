@@ -171,7 +171,7 @@ int main() {
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
-    motor_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
+    motor_controller_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
 }
 
 //Doesn't need a token bucket; should be sent straight to raspberry pi
