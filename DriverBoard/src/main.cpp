@@ -52,8 +52,8 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
-TokenBucket motor_token_bucket(1, 1000);
-TokenBucket motor_controller_token_bucket(1, 1000)
+TokenBucket motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket motor_controller_token_bucket(1, 1000);
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
