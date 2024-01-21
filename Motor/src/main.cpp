@@ -1,12 +1,14 @@
 #include "MotorCANInterface.h"
 #include "MotorControllerCANInterface.h"
 #include "MotorInterface.h"
+#include "MotorRateLimiter.h"
 #include "MotorStateTracker.h"
 #include "Printing.h"
 #include "log.h"
 #include "pindef.h"
 #include <mbed.h>
 #include <rtos.h>
+
 
 #define LOG_LEVEL        LOG_DEBUG
 #define MAIN_LOOP_PERIOD 100ms
@@ -31,6 +33,10 @@ MotorInterface motor_interface(throttle, regen, gear, ignition);
 MotorStateTracker motor_state_tracker;
 
 Timeout ECUMotorCommands_timeout;
+
+//Initialize Token Buckets
+TokenBucket mc_driver_token_bucket(1, 5000); //(number of tokens, milliseconds)
+TokenBucket mc_power_token_bucket(1, 5000); //(number of tokens, milliseconds)
 
 // If we have not received an ECUMotorCommands struct in 100ms, we assume that
 // the CAN bus is down and set the throttle to 0.
@@ -74,18 +80,18 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
 
 }
 
-void MotorControllerCANInterface::handle(
-    MotorControllerPowerStatus *can_struct) {
+void MotorControllerCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     can_struct->log(LOG_INFO);
 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
+    mc_power_token_bucket.handle(motor_state_tracker, MotorControllerPowerStatus_MESSAGE_ID)
 }
 
-void MotorControllerCANInterface::handle(
-    MotorControllerDriveStatus *can_struct) {
+void MotorControllerCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     can_struct->log(LOG_INFO);
 
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
+    mc_driver_token_bucket.handle(motor_state_tracker, MotorControllerDriveStatus_MESSAGE_ID)
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
