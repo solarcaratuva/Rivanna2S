@@ -1,6 +1,7 @@
 #include "BPSCANInterface.h"
 #include "BatteryBoardCANInterface.h"
 #include "ECUCANStructs.h"
+#include "BPSRateLimiter.h"
 
 #include "DigitalOut.h"
 #include "Printing.h"
@@ -63,6 +64,9 @@ bool has_faulted = false;
 int low_cell_voltage_threshold = 27500;
 int high_cell_voltage_threshold = 42000;
 uint16_t BPS_Cell_Messages = 0;
+
+//Initialize Token Buckets
+TokenBucket bps_pack_info_token_bucket(1, 5000); //(number of tokens, milliseconds)
 
 //  ------------------------------------------------------
 // TODO: make sure these methods are correct
@@ -219,6 +223,7 @@ void BPSCANInterface::handle(BPSPackInformation *can_struct) {
     charge_relay_status = can_struct->charge_relay_status;
     discharge_relay_status = can_struct->discharge_relay_status;
     //can_struct->log(LOG_INFO);
+    bps_pack_info_token_bucket.handle(can_struct, BPSPackInformation_MESSAGE_ID);
 }
 
 void BPSCANInterface::handle(BPSError *can_struct) {
