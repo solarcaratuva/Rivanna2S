@@ -55,6 +55,7 @@ const bool LOG_BPS_CELL_TEMPERATURE = false;
 TokenBucket motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
 TokenBucket motor_controller_token_bucket(1, 1000);
 
+
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
 */
@@ -167,6 +168,10 @@ int main() {
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
+}
+
+void DriverCANInterface::handle(PowerAuxError *can_struct) {
+    
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
