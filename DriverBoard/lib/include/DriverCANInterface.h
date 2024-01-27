@@ -10,6 +10,7 @@ class DriverCANInterface : public MainCANInterface {
     DriverCANInterface(PinName rd, PinName td, PinName standby_pin);
     void handle(BPSError *can_struct);
     void handle(MotorControllerPowerStatus *can_struct);
+    void 
     int send(CANStruct *can_struct);
 
   private:

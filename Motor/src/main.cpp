@@ -34,10 +34,6 @@ MotorStateTracker motor_state_tracker;
 
 Timeout ECUMotorCommands_timeout;
 
-//Initialize Token Buckets
-TokenBucket mc_driver_token_bucket(1, 5000); //(number of tokens, milliseconds)
-TokenBucket mc_power_token_bucket(1, 5000); //(number of tokens, milliseconds)
-
 // If we have not received an ECUMotorCommands struct in 100ms, we assume that
 // the CAN bus is down and set the throttle to 0.
 void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
@@ -84,14 +80,12 @@ void MotorControllerCANInterface::handle(MotorControllerPowerStatus *can_struct)
     can_struct->log(LOG_INFO);
 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
-    mc_power_token_bucket.handle(motor_state_tracker, MotorControllerPowerStatus_MESSAGE_ID)
 }
 
 void MotorControllerCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     can_struct->log(LOG_INFO);
 
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
-    mc_driver_token_bucket.handle(motor_state_tracker, MotorControllerDriveStatus_MESSAGE_ID)
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
