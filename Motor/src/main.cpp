@@ -15,6 +15,7 @@ EventQueue event_queue(32 * EVENTS_EVENT_SIZE);
 Thread event_thread;
 
 MotorCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX);
+
 MotorControllerCANInterface motor_controller_can_interface(MTR_CTRL_CAN_RX,
                                                            MTR_CTRL_CAN_TX,
                                                            MTR_CTRL_CAN_STBY);
@@ -67,7 +68,15 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     motor_interface.sendDirection(
         can_struct->forward_en); // TODO: verify motor controller will not allow
                                  // gear change when velocity is non-zero
-    motor_interface.sendThrottle(can_struct->throttle);
+    
+
+    bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
+    if(cruiseControlEnabled) {
+        motor_interface.sendThrottle(can_struct->cruise_control_speed);
+    } else {
+        motor_interface.sendThrottle(can_struct->throttle);
+    }
+    
     motor_interface.sendRegen(can_struct->regen);
 
     log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
