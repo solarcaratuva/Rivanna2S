@@ -173,7 +173,7 @@ int main() {
         vehicle_can_interface.send(&to_motor);
 
         //Send to handler to determine whether the message should be sent to pi
-        log_debug("Sending to handler");
+        log_debug("Sending to handler ecumotorcommands");
         ecu_motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
 
 
