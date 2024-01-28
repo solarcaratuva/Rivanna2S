@@ -52,7 +52,12 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
-TokenBucket motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket ecu_motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket ecu_power_aux_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_current_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_voltage_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_temp_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_photo_token_bucket(1, 1000); //(number of tokens, milliseconds)
 TokenBucket motor_controller_token_bucket(1, 1000);
 
 
@@ -163,20 +168,41 @@ int main() {
 
         //Send to handler to determine whether the message should be sent to pi
         log_debug("Sending to handler");
-        motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
+        ecu_motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
 
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
 
-void DriverCANInterface::handle(PowerAuxError *can_struct) {
-    
+
+void DriverCANInterface::handle(ECUPowerAuxCommands *can_struct) {
+    ecu_power_aux_token_bucket.handle(can_struct, ECUPowerAuxCommands_MESSAGE_ID);
+}
+
+// void DriverCANInterface::handle(PowerAuxError *can_struct) {
+
+// }
+
+void DriverCANInterface::handle(SolarCurrent *can_struct) {
+    solar_current_token_bucket.handle(can_struct, SolarCurrent_MESSAGE_ID);
+}
+
+void DriverCANInterface::handle(SolarVoltage *can_struct) {
+    solar_voltage_token_bucket.handle(can_struct, SolarVoltage_MESSAGE_ID);
+}
+
+void DriverCANInterface::handle(SolarTemp *can_struct) {
+    solar_temp_token_bucket.handle(can_struct, SolarTemp_MESSAGE_ID);
+}
+
+void DriverCANInterface::handle(SolarPhoto *can_struct) {
+    solar_photo_token_bucket.handle(can_struct, SolarPhoto_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
-    motor_controller_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
+    motor_controller_token_bucket.handle(can_struct, MotorControllerPowerStatus_MESSAGE_ID);
 }
 
 //Doesn't need a token bucket; should be sent straight to raspberry pi
