@@ -29,6 +29,8 @@ bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
 
+
+
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
@@ -41,6 +43,12 @@ DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
 DigitalIn reverseSwitch(REVERSE_IN);
+
+//TODO: add pins for cruise control
+DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
+DigitalIn cruiseIncrease(CRUISE_INC);
+DigitalIn cruiseDecrease(CRUISE_DEC);
+
 AnalogIn throttle(THROTTLE, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
@@ -50,6 +58,8 @@ const bool LOG_BPS_PACK_INFORMATION = true;
 const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
+int RPM = 0;
+
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -83,25 +93,28 @@ void read_inputs() {
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
-    brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
+    brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
 }
 
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = ACTIVELOW_ON;
-            leftTurnSignal = ACTIVELOW_ON;
+            rightTurnSignal = true;
+            leftTurnSignal = true;
         } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = ACTIVELOW_OFF;
+            rightTurnSignal = false;
+        } else if (flashRSignal) {
+            leftTurnSignal = false;
+            rightTurnSignal = !rightTurnSignal;
         } else {
-            leftTurnSignal = ACTIVELOW_OFF;
-            rightTurnSignal = ACTIVELOW_OFF;
+            leftTurnSignal = false;
+            rightTurnSignal = false;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -141,12 +154,21 @@ int main() {
             throttleValue = pedalValue;
             regenValue = 0;
         }
-      
+
         to_motor.throttle = throttleValue;
+
+        //This is if we handle on db side, rn handled on motor side
+        // if(cruiseControlSwitch) {
+        //     to_motor.throttle = throttleValue; //use CC value from Karthik's
+        // } 
+        
         to_motor.regen = regenValue;
 
         to_motor.forward_en = !reverseEnabled;
         to_motor.reverse_en = reverseEnabled; 
+
+        to_motor.cruise_control_en = cruiseControlSwitch;
+        to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
@@ -156,7 +178,8 @@ int main() {
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
-    rpmPositive = can_struct->motor_rpm > 0;
+    // rpmPositive = can_struct->motor_rpm > 0; 
+    RPM = can_struct->motor_rpm; 
 }
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;

@@ -15,6 +15,7 @@ EventQueue event_queue(32 * EVENTS_EVENT_SIZE);
 Thread event_thread;
 
 MotorCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX);
+
 MotorControllerCANInterface motor_controller_can_interface(MTR_CTRL_CAN_RX,
                                                            MTR_CTRL_CAN_TX,
                                                            MTR_CTRL_CAN_STBY);
@@ -104,47 +105,35 @@ int main() {
     }
 }
 
-
-
 void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
-    if(enabled){
-        // Reset current timeout
-        ECUMotorCommands_timeout.detach();
-        // Set new timeout for 100ms from now
-        ECUMotorCommands_timeout.attach(
-            event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
+    // Reset current timeout
+    ECUMotorCommands_timeout.detach();
+    // Set new timeout for 100ms from now
+    ECUMotorCommands_timeout.attach(
+        event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-        can_struct->log(LOG_INFO);
+    can_struct->log(LOG_INFO);
 
-        motor_interface.sendIgnition(can_struct->motor_on);
-        motor_interface.sendDirection(
-            can_struct->forward_en); // TODO: verify motor controller will not allow
-                                    // gear change when velocity is non-zero
+    motor_interface.sendIgnition(can_struct->motor_on);
+    motor_interface.sendDirection(
+        can_struct->forward_en); // TODO: verify motor controller will not allow
+                                 // gear change when velocity is non-zero
+    
+
+    bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
+    if(cruiseControlEnabled) {
+         // do a calculation to send throttle
+          // double send = calculate(suggestedSpeed, ___);
+          // motor_interface.sendThrottle(send); 
+        motor_interface.sendThrottle(can_struct->cruise_control_speed);
+    } else {
         motor_interface.sendThrottle(can_struct->throttle);
-        motor_interface.sendRegen(can_struct->regen);
-        // double send = calculate(suggestedSpeed, ___);
-        // motor_interface.sendThrottle(send); 
-        suggestedSpeed = can_struct->cruise_control_speed;
-        enabled = can_struct->cruise_control_en;
-    } else{
-        // Reset current timeout
-        ECUMotorCommands_timeout.detach();
-        // Set new timeout for 100ms from now
-        ECUMotorCommands_timeout.attach(
-            event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
-
-        can_struct->log(LOG_INFO);
-
-        motor_interface.sendIgnition(can_struct->motor_on);
-        motor_interface.sendDirection(
-            can_struct->forward_en); // TODO: verify motor controller will not allow
-                                    // gear change when velocity is non-zero
-        // do a calculation to send throttle
-        suggestedSpeed = can_struct->cruise_control_speed;
-        enabled = can_struct->cruise_control_en;
-        log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
-
     }
+    
+    motor_interface.sendRegen(can_struct->regen);
+
+    log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
+
 }
 
 void MotorControllerCANInterface::handle(
@@ -156,6 +145,7 @@ void MotorControllerCANInterface::handle(
     // calculate(current, ___); 
     // timer
     // dt = (new timer) - (old timer)
+    can_struct->cruise_control_speed = suggestedSpeed;
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
 }
 
