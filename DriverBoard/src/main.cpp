@@ -53,7 +53,11 @@ const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
 TokenBucket motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
-TokenBucket motor_controller_token_bucket(1, 1000);
+TokenBucket motor_controller_power_token_bucket(1, 1000);
+TokenBucket motor_controller_drive_token_bucket(1,1000);
+TokenBucket bps_pack_token_bucket(1,1000);
+TokenBucket bps_cell_voltage_token_bucket(1,1000);
+TokenBucket bps_cell_temp_token_bucket(1,1000);
 
 
 /*
@@ -170,13 +174,26 @@ int main() {
     }
 }
 
-void DriverCANInterface::handle(PowerAuxError *can_struct) {
-    
-}
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
-    motor_controller_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
+    motor_controller_power_token_bucket.handle(&motor_rpm, MotorControllerPowerStatus_MESSAGE_ID);
+}
+21
+void DriverCANInterface::handle(MotorControllerDriveStatus *can_struct) {
+    motor_controller_drive_token_bucket.handle(can_struct, MotorControllerDriveStatus);
+}
+
+void DriverCANInterface::handle(BPSPackInformation *can_struct) {
+    motor_controller_drive_token_bucket.handle(can_struct, BPSPackInformation);
+}
+
+void DriverCANInterface::handle(BPSCellVoltage *can_struct) {
+    motor_controller_drive_token_bucket.handle(can_struct, BPSCellVoltage);
+}
+
+void DriverCANInterface::handle(BPSCellTemperature *can_struct) {
+    motor_controller_drive_token_bucket.handle(can_struct, BPSCellTemperature);
 }
 
 //Doesn't need a token bucket; should be sent straight to raspberry pi
