@@ -1,12 +1,17 @@
 #include <gtest/gtest.h>
 #include "../../PowerAux/lib/include/SignalFlashHandler.h"
 #include "../../PowerAux/lib/include/TestSignalControl.h" // Include your test implementation
-
+TestSignalControl testSignalControl; // Use your test implementation
+SignalFlashHandler signalFlashHandler{testSignalControl};
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::GTEST_FLAG(filter) = "TestSignalFlashHandlerFunctionality*";
+    return RUN_ALL_TESTS();
+}
 // Test fixture for SignalFlashHandler testing
 class SignalFlashHandlerTest : public ::testing::Test {
 protected:
-    TestSignalControl testSignalControl; // Use your test implementation
-    SignalFlashHandler signalFlashHandler{testSignalControl};
+    
 
     // SetUp function to configure test conditions
     void SetUp() override {
@@ -33,6 +38,6 @@ TEST_F(SignalFlashHandlerTest, TestSignalFlashHandlerFunctionality) {
     // Validate the expected behavior based on your implementation
     // You can use ASSERT_* or EXPECT_* macros to check expected results
     // For example:
-    ASSERT_TRUE(testSignalControl.getOutputLeftTurnSignal());
-    ASSERT_FALSE(testSignalControl.getOutputRightTurnSignal());
+    ASSERT_TRUE(testSignalControl.getFlashLeftSignalValue());
+    ASSERT_FALSE(testSignalControl.getFlashRightSignalValue());
 }
