@@ -38,35 +38,36 @@ Timeout ECUMotorCommands_timeout;
 void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 
 // RPM + Current
-int rpm, current, suggestedSpeed;
+uint16_t rpm, current, currentSpeed;
 bool enabled;
+double _pre_error, _integral;
 
 // set values for initalization
-double dt, max, min, Kp, Kd, Ki;
+double dt, _max, _min, Kp, Kd, Ki;
 
-void init(double _max, double _min, double _Kp, double _Kd, double _Ki){
-    max = _max;
-    min = _min;
+void init(uint16_t __max, uint16_t __min, double _Kp, double _Kd, double _Ki){
+    _max = __max;
+    _min = __min;
     Kp = _Kp;
     Kd = _Kd;
     Ki = _Ki;
 }
 
-double calculate(double setpoint, double pv){
+uint16_t calculate(uint16_t setpoint, uint16_t pv){
     // Calculate error
     double error = setpoint - pv;
     
     // Proportional term
-    double Pout = _Kp * error;
+    double Pout = Kp * error;
 
     // Integral term
-    _integral += error * _dt;
-    double Iout = _Ki * _integral;
+    _integral += error * dt;
+    double Iout = Ki * _integral;
 
     // Derivative term
-    double derivative = (error - _pre_error) / _dt;
-    double Dout = _Kd * derivative;
-    double output = Pout + Iout + Dout;
+    double derivative = (error - _pre_error) / dt;
+    double Dout = Kd * derivative;
+    uint16_t output = (uint16_t)(Pout + Iout + Dout);
 
     if( output > _max )
         output = _max;
@@ -74,7 +75,6 @@ double calculate(double setpoint, double pv){
         output = _min;
     
     _pre_error = error;
-
     return output;
 }
 
@@ -88,8 +88,10 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    // init(___, __, ___, ___, ___);
-   // dt = 
+    init(256,0, 0, 0, 0);
+    _pre_error = 0;
+    _integral = 0;
+    dt =  0.1;
     
     while (true) {
         if(!enabled){
@@ -125,7 +127,8 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
          // do a calculation to send throttle
           // double send = calculate(suggestedSpeed, ___);
           // motor_interface.sendThrottle(send); 
-        motor_interface.sendThrottle(can_struct->cruise_control_speed);
+        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        motor_interface.sendThrottle(current);
     } else {
         motor_interface.sendThrottle(can_struct->throttle);
     }
@@ -141,11 +144,7 @@ void MotorControllerCANInterface::handle(
     can_struct->log(LOG_INFO);
     rpm = can_struct->motor_rpm;
     current = can_struct->motor_current;
-    suggestedSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
-    // calculate(current, ___); 
-    // timer
-    // dt = (new timer) - (old timer)
-    can_struct->cruise_control_speed = suggestedSpeed;
+    currentSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
 }
 

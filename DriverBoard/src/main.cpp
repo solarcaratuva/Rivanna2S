@@ -93,6 +93,22 @@ void read_inputs() {
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
+
+    if(cruiseControlSwitch) {
+        log_debug("cruiseControlSwitch pressed");
+    }
+    cruiseControlSwitch ? log_debug("CC switch pressed") : log_debug("CC switch not pressed");
+    cruiseIncrease ? log_debug("CC increase switch pressed") : log_debug("CC increase switch not pressed");
+    cruiseDecrease ? log_debug("CC decrease switch pressed") : log_debug("CC decrease switch not pressed");
+    
+    //log_debug(cruiseControlSwitch);
+    // log_debug(cruiseDecrease);
+    // log_debug(cruiseIncrease);
+    // log_debug(regenEnabled);
+    // log_debug(flashLSignal);
+    // log_debug(flashRSignal);
+    // log_debug(reverseEnabled);
+    // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
 }
 
@@ -121,61 +137,72 @@ void signalFlashHandler() {
 }
 
 int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
-
-    signalFlashThread.start(signalFlashHandler);
-
-    dro = ACTIVELOW_ON;
-
-    while (true) {
-        log_debug("Main thread loop");
-        read_inputs();
-
-        ECUMotorCommands to_motor;
-
-        uint16_t pedalValue = readThrottle();
-        uint16_t regenValue;    
-        uint16_t throttleValue;
-
-        if (regenEnabled) {
-            // One pedal drive (tesla style)
-            if (pedalValue <= 50) {
-                throttleValue = 0;
-                regenValue = 79.159 * pow(50-pedalValue, 0.3);
-            } else if (pedalValue < 100) {
-                throttleValue = 0;
-                regenValue = 0;
-            } else {
-                throttleValue = -56.27610464*pow(156-(pedalValue-100),0.3) + 256;
-                regenValue = 0;
-            }
-        } else {
-            throttleValue = pedalValue;
-            regenValue = 0;
-        }
-
-        to_motor.throttle = throttleValue;
-
-        //This is if we handle on db side, rn handled on motor side
-        // if(cruiseControlSwitch) {
-        //     to_motor.throttle = throttleValue; //use CC value from Karthik's
-        // } 
-        
-        to_motor.regen = regenValue;
-
-        to_motor.forward_en = !reverseEnabled;
-        to_motor.reverse_en = reverseEnabled; 
-
-        to_motor.cruise_control_en = cruiseControlSwitch;
-        to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
-
-        to_motor.motor_on = true;
-        vehicle_can_interface.send(&to_motor);
-
-        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+    while(true) {
+        log_debug("this at least works?!??");
     }
 }
+
+// int main() {
+//     log_set_level(LOG_LEVEL);
+//     log_debug("Start main()");
+
+    
+
+//     signalFlashThread.start(signalFlashHandler);
+
+//     dro = ACTIVELOW_ON;
+
+//     while (true) {
+//         log_debug("Main thread loop");
+
+        
+
+//         read_inputs();
+
+//         ECUMotorCommands to_motor;
+
+//         uint16_t pedalValue = readThrottle();
+//         uint16_t regenValue;    
+//         uint16_t throttleValue;
+
+//         if (regenEnabled) {
+//             // One pedal drive (tesla style)
+//             if (pedalValue <= 50) {
+//                 throttleValue = 0;
+//                 regenValue = 79.159 * pow(50-pedalValue, 0.3);
+//             } else if (pedalValue < 100) {
+//                 throttleValue = 0;
+//                 regenValue = 0;
+//             } else {
+//                 throttleValue = -56.27610464*pow(156-(pedalValue-100),0.3) + 256;
+//                 regenValue = 0;
+//             }
+//         } else {
+//             throttleValue = pedalValue;
+//             regenValue = 0;
+//         }
+
+//         to_motor.throttle = throttleValue;
+
+//         //This is if we handle on db side, rn handled on motor side
+//         // if(cruiseControlSwitch) {
+//         //     to_motor.throttle = throttleValue; //use CC value from Karthik's
+//         // } 
+        
+//         to_motor.regen = regenValue;
+
+//         to_motor.forward_en = !reverseEnabled;
+//         to_motor.reverse_en = reverseEnabled; 
+
+//         to_motor.cruise_control_en = cruiseControlSwitch;
+//         to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
+
+//         to_motor.motor_on = true;
+//         vehicle_can_interface.send(&to_motor);
+
+//         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+//     }
+// }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0; 
