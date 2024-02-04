@@ -1,7 +1,6 @@
 #include "BPSCANInterface.h"
 #include "BatteryBoardCANInterface.h"
 #include "ECUCANStructs.h"
-#include "BPSRateLimiter.h"
 
 #include "DigitalOut.h"
 #include "Printing.h"

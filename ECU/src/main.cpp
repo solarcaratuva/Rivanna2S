@@ -10,22 +10,6 @@
 #include <mbed.h>
 #include <rtos.h>
 
-
-// for token bucket
-#include "ECUCANRateLimiter.h"
-#include "algorithms/token_bucket.h"
-#include "threads/thread.h"
-#include "time/timestamp.h"
-#include <atomic>
-#include <chrono>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "message_id_frequency"
-using namespace std
-
-// end for token bucket
-
 #define LOG_LEVEL              LOG_DEBUG
 #define MAIN_LOOP_PERIOD       1s
 #define MOTOR_THREAD_PERIOD    10ms
@@ -45,8 +29,6 @@ ECUPowerAuxCommands to_poweraux;
 // Message Sending Threads
 Thread motor_thread;
 Thread poweraux_thread;
-Thread send_can_message_thread;
-
 
 int charge_relay_status;
 
@@ -112,39 +94,8 @@ void poweraux_message_handler() {
         to_poweraux.left_turn_signal = input_reader.readLeftTurnSignal();
         to_poweraux.right_turn_signal = input_reader.readRightTurnSignal();
 
-        // Send message
-        //to_poweraux.left_turn_signal = 1;
-        //to_poweraux.brake_lights = 1;
-        //to_poweraux.hazards = 1;
 
-        // Get value of last_time and refill rate
-        double last_time = ecu_power_aux_commands_token_bucket.get_last_time();
-        int refill_rate = ecu_power_aux_commands_token_bucket.get_refill_rate()
-
-        // Determine whether the time difference is past the set interval
-        auto result = ecu_power_aux_commands_token_bucket.past_interval_time(last_time, refill_rate);
-        int last_time;
-        bool past_interval;
-
-        // Special use case for if hazards = true and blinkers = true
-        if (can_struct->headlights) {
-            flashBMS = can_struct->hazards;
-            signalFlashThread.flags_set(0x1);
-
-            return;
-        }
-
-        // If token left in bucket (e.g., if past interval), then send message to raspberry pi
-        if (past_interval) {
-            ecu_power_aux_commands_token_bucket.set_last_time(last_time);
-            vehicle_can_interface.send(&to_poweraux);
-            to_poweraux.log(LOG_DEBUG);
-            log_debug("POWER AUX MESSAGE SENT THROUGH");
-        }
-
-        if (!past_interval) {
-            log_debug("POWER AUX MESSAGE DROPPED");
-        }
+   
 
         // Sleep
         ThisThread::sleep_for(POWERAUX_THREAD_PERIOD);
@@ -153,11 +104,6 @@ void poweraux_message_handler() {
 
 
 
-// Reimplementation of TokenBucket stuff
-
-// Note from 12/2: TokenBucket motor_ecu_token_bucket(1, 1000, send_to_pi) should be moved 
-// to the DriverBoard folder, then declared as a global variable and used in each of the handle functions
-// for the different types of can messages
 
 
 int main() {
@@ -191,7 +137,7 @@ void ECUCANInterface::handle(BPSPackInformation *can_struct) {
 
 
 // Make handlers for other CAN messages
-
+/*
 void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
     if (uartTX != NC) {
         char message_data[17];
@@ -213,3 +159,4 @@ void ECUCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
         raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
     }
 }
+*/

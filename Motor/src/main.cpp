@@ -1,7 +1,6 @@
 #include "MotorCANInterface.h"
 #include "MotorControllerCANInterface.h"
 #include "MotorInterface.h"
-#include "MotorRateLimiter.h"
 #include "MotorStateTracker.h"
 #include "Printing.h"
 #include "log.h"
