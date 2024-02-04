@@ -56,16 +56,16 @@ TokenBucket ecu_motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
 TokenBucket ecu_power_aux_token_bucket(1, 1000); //(number of tokens, milliseconds)
 TokenBucket solar_current_token_bucket(1, 1000); //(number of tokens, milliseconds)
 TokenBucket solar_voltage_token_bucket(1, 1000); //(number of tokens, milliseconds)
-TokenBucket solar_temp_token_bucket(1, 1000); //(number of tokens, milliseconds)
-TokenBucket solar_photo_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_temp_token_bucket(1, 2000); //(number of tokens, milliseconds)
+TokenBucket solar_photo_token_bucket(1, 2000); //(number of tokens, milliseconds)
 TokenBucket motor_controller_power_token_bucket(1, 1000);
 TokenBucket motor_controller_drive_token_bucket(1,1000);
-TokenBucket bps_pack_token_bucket(1,1000);
-TokenBucket bps_cell_voltage_token_bucket(1,1000);
-TokenBucket bps_cell_temp_token_bucket(1,1000);
-TokenBucket bps_error_token_bucket(1,1000);
-TokenBucket power_aux_error_token_bucket(1,1000);
-TokenBucket motor_controller_error_token_bucket(1,1000);
+TokenBucket bps_pack_token_bucket(1,2000);
+TokenBucket bps_cell_voltage_token_bucket(1,2000);
+TokenBucket bps_cell_temp_token_bucket(1,2000);
+TokenBucket bps_error_token_bucket(1,500);
+TokenBucket power_aux_error_token_bucket(1,500);
+TokenBucket motor_controller_error_token_bucket(1,500);
 
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
@@ -123,7 +123,7 @@ void signalFlashHandler() {
     }
 }
 
-// get message, send to handle function, handle function sends to pi
+// get message, send to handle function, handle function sends to pi or drops message
 
 
 int main() {
@@ -229,6 +229,7 @@ void DriverCANInterface::handle(MotorControllerDriveStatus *can_struct) {
 }
 
 void DriverCANInterface::handle(BPSPackInformation *can_struct) {
+    log_debug("Sending to handler bpspackinformation");
     motor_controller_drive_token_bucket.handle(can_struct, BPSPackInformation);
 }
 
@@ -242,7 +243,7 @@ void DriverCANInterface::handle(BPSCellTemperature *can_struct) {
     motor_controller_drive_token_bucket.handle(can_struct, BPSCellTemperature);
 }
 
-//Doesn't need a token bucket; should be sent straight to raspberry pi
+//Should be sent straight to raspberry pi
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     log_debug("Sending to handler bpserror");

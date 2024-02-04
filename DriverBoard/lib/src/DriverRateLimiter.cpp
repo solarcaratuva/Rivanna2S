@@ -23,6 +23,11 @@ void TokenBucket::handle(CANMessage *message, uint16_t message_id) {
 
     if (this->bucket > 1) {
         this->bucket -= 1;
+        log_debug("Message Sent | Message Type: %s\n", message_id);
         send_to_pi(*message, message_id);
+    }
+
+    else {
+        log_debug("Message Dropped | Message Type: %s\n", message_id);
     }
 }
