@@ -3,13 +3,15 @@
 
 #ifdef TARGET_UVA_SOLAR_CAR
 
-#define LEFT_TURN_IN PB_1 // 17
-#define RIGHT_TURN_IN PB_14 // 28
-#define HAZARDS_IN PC_13 // 2
-#define MECHANICAL_BRAKE_IN PA_9 // 31
-#define REGEN_IN PB_15 // 29
-#define THROTTLE_VALUE_IN PB_13 // 27
-#define FORWARD_REVERSE_IN PB_2 // 18
+#define LEFT_TURN_IN PA_10
+#define RIGHT_TURN_IN PA_9
+#define HAZARDS_IN PB_15
+#define MECHANICAL_BRAKE_IN PA_8
+#define REGEN_IN PB_11
+#define THROTTLE_VALUE_IN PB_2
+#define CRUISE_CONTROL_IN_POSITIVE PB_13
+#define CRUISE_CONTROL_IN_NEGATIVE PB_12
+#define CRUISE_CONTROL_IN_NEUTRAL PB_14
 
 #define CAN_RX             PA_11 // Rx for MCU
 #define CAN_TX             PA_12
