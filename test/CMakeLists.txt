@@ -8,21 +8,21 @@ add_subdirectory(googletest)
 
 # Include the GoogleTest headers
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+include_directories(../PowerAux/lib/include)
 
 # Specify the test source files
 set(TEST_SOURCES
-    tests/exampleTest.cpp
-    ../PowerAux/lib/src/SignalFlashHandler.cpp
-    ../PowerAux/lib/src/TestSignalControl.cpp
+    exampleTest.cpp
     # Add other test files here
 )
 
 set(SOURCE_FILES
-    ../PowerAux/lib/include/SignalControl.h
     ../PowerAux/lib/include/SignalFlashHandler.h
-    ../PowerAux/lib/src/SignalFlashHandler.cpp
     ../PowerAux/lib/include/TestSignalControl.h
+    #../PowerAux/lib/src/SignalFlashHandler.cpp
     ../PowerAux/lib/src/TestSignalControl.cpp
+    ethan.h
+    ethan.cpp
     # Add other source files here
 )
 
@@ -30,11 +30,11 @@ enable_testing()
 
 add_executable(
   SignalFlashHandlerTest
-  tests/exampleTest.cpp
+  ${TEST_SOURCES} ${SOURCE_FILES}
 )
 target_link_libraries(
   SignalFlashHandlerTest
-  GTest::gtest_main
+  gtest_main
 )
 
 include(GoogleTest)
