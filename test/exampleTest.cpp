@@ -32,9 +32,7 @@ TEST_F(SignalFlashHandlerTest, TestSignalFlashHandlerFunctionality) {
     signalFlashHandler.updateState(false, true, true, false);
 
     // Set callbacks for sleep and wait
-    //signalFlashHandler.set_callbacks([](){}, [](){});
-
-
+    signalFlashHandler.set_callbacks([](){}, [](){});
 
     // Call the handle function
     //signalFlashHandler.handle();

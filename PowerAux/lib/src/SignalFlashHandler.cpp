@@ -2,7 +2,7 @@
 
 
 
-SignalFlashHandler::SignalFlashHandler(SignalControl& control) : signalControl(control) {}
+SignalFlashHandler::SignalFlashHandler(TestSignalControl& control) : signalControl(control) {}
 
 
 void SignalFlashHandler::set_callbacks(std::function<void()> sleep, std::function<void()> wait){
@@ -19,7 +19,7 @@ void SignalFlashHandler::updateState(bool flashHazards, bool flashLSignal, bool 
 }
 
 void SignalFlashHandler::handle(){
-    log_debug("Flash thread");
+        log_debug("Flash thread");
         if (!flashBMS) {
             bms_strobe = 0;
         }
