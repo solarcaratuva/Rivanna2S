@@ -8,6 +8,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
+/*
 #define LOG_LEVEL          LOG_INFO
 #define MAIN_LOOP_PERIOD   1s
 #define ERROR_CHECK_PERIOD 100ms
@@ -18,10 +19,23 @@
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
 
+*/
+
+#define LEFT_TURN_IN PA_10
+#define RIGHT_TURN_IN PA_9
+#define HAZARDS_IN PB_15
+#define MECHANICAL_BRAKE_IN PA_8
+#define REGEN_IN PB_11
+#define THROTTLE_VALUE_IN PB_2
+#define CRUISE_CONTROL_IN_POSITIVE PB_13
+#define CRUISE_CONTROL_IN_NEGATIVE PB_12
+#define CRUISE_CONTROL_IN_NEUTRAL PB_14
+
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
+/*
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
@@ -29,7 +43,63 @@ bool rpmPositive = false;
 bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
+*/
 
+DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
+DigitalIn leftTurnSwitch(LEFT_TURN_IN);
+DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
+DigitalIn hazardsSwitch(HAZARDS_IN);
+DigitalIn regenSwitch(REGEN_IN);
+DigitalIn throttleSwitch(THROTTLE_VALUE_IN);
+DigitalIn cruiseControlPSwitch(CRUISE_CONTROL_IN_POSITIVE);
+DigitalIn cruiseControlNSwitch(CRUISE_CONTROL_IN_NEGATIVE);
+DigitalIn cruiseControlEnableSwitch(CRUISE_CONTROL_IN_NEUTRAL);
+
+int main() {
+while (true){
+    if (brakeLightsSwitch){
+        log_debug("-------Brake Lights On-------");
+    }
+
+    if (leftTurnSwitch){
+        log_debug("-------Left Turn Lights On-------");
+    }
+
+    if (rightTurnSwitch){
+        log_debug("-------Right Turn Lights On-------");
+    }
+
+    if (hazardsSwitch){
+        log_debug("-------Hazards Lights On-------");
+    }
+
+    if (regenSwitch){
+        log_debug("-------Regen Switch On-------");
+    }
+
+    if (throttleSwitch){
+        log_debug("-------Throttle Switch On-------");
+    }      
+
+    if (cruiseControlEnableSwitch){
+        log_debug("-------Cruise Control Switch On-------");
+    } 
+
+    if (cruiseControlPSwitch){
+        log_debug("-------Cruise Control is Positive-------");
+    } 
+
+    if (cruiseControlNSwitch){
+        log_debug("-------Cruise Control is Negative-------");
+    }      
+
+    else {
+        log_debug("NOTHING IS ON");
+    }
+
+}
+}
+/*
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
@@ -67,9 +137,9 @@ TokenBucket bps_error_token_bucket(1,500);
 TokenBucket power_aux_error_token_bucket(1,500);
 TokenBucket motor_controller_error_token_bucket(1,500);
 
-/*
-A lot of the outputs are active low. However, this might be confusing to read.
-*/
+
+//A lot of the outputs are active low. However, this might be confusing to read.
+
 const bool ACTIVELOW_ON = false;
 const bool ACTIVELOW_OFF = true;
 
@@ -249,4 +319,4 @@ void DriverCANInterface::handle(BPSError *can_struct) {
     log_debug("Sending to handler bpserror");
     bps_error_token_bucket.handle(can_struct, BPSError_MESSAGE_ID);
 }
-
+*/
