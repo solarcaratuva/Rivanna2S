@@ -41,24 +41,6 @@
 #define BRAKE_LIGHTS_OUT PA_4
 
 
-//Old read in 
-/*
-DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
-DigitalIn leftTurnSwitch(LEFT_TURN_IN);
-DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
-DigitalIn hazardsSwitch(HAZARDS_IN);
-DigitalIn regenSwitch(REGEN_IN);
-DigitalIn throttleSwitch(THROTTLE_VALUE_IN);
-DigitalIn cruiseControlPSwitch(CRUISE_CONTROL_IN_POSITIVE);
-DigitalIn cruiseControlNSwitch(CRUISE_CONTROL_IN_NEGATIVE);
-DigitalIn cruiseControlEnableSwitch(CRUISE_CONTROL_IN_NEUTRAL);
-
-DigitalIn rightTurnOut(RIGHT_TURN_OUT);
-DigitalIn leftTurnOut(LEFT_TURN_OUT);
-DigitalIn bmsStrobeOut(BMS_STROBE_OUT);
-DigitalIn brakeLightOut(BRAKE_LIGHT_OUT);
-*/
-
 //Can't switch positive and negative cruise control is cruise control isn't on
 
 
@@ -150,6 +132,8 @@ void signalFlashHandler() {
         ThisThread::sleep_for(FLASH_PERIOD);
     }
 }
+
+//Code for Testing Buttons
 
 /*
 int main() {
