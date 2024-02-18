@@ -3,7 +3,7 @@
 
 #ifdef TARGET_UVA_SOLAR_CAR
 
-#define FORWARD_REVERSE_IN PB_2 // 18
+// #define FORWARD_REVERSE_IN PB_2
 
 #define CRUISE_ENABLED PB_14
 #define CRUISE_INC PB_13
