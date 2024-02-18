@@ -136,73 +136,68 @@ void signalFlashHandler() {
     }
 }
 
-int main() {
-    while(true) {
-        log_debug("this at least works?!??");
-    }
-}
 
-// int main() {
-//     log_set_level(LOG_LEVEL);
-//     log_debug("Start main()");
+int main() {
+    log_set_level(LOG_LEVEL);
+    log_debug("Start main()");
 
     
 
-//     signalFlashThread.start(signalFlashHandler);
+    signalFlashThread.start(signalFlashHandler);
 
-//     dro = ACTIVELOW_ON;
+    dro = ACTIVELOW_ON;
 
-//     while (true) {
-//         log_debug("Main thread loop");
+    while (true) {
+        log_debug("Main thread loop");
 
         
 
-//         read_inputs();
+        read_inputs();
 
-//         ECUMotorCommands to_motor;
+        ECUMotorCommands to_motor;
 
-//         uint16_t pedalValue = readThrottle();
-//         uint16_t regenValue;    
-//         uint16_t throttleValue;
+        uint16_t pedalValue = readThrottle();
+        uint16_t regenValue;    
+        uint16_t throttleValue;
 
-//         if (regenEnabled) {
-//             // One pedal drive (tesla style)
-//             if (pedalValue <= 50) {
-//                 throttleValue = 0;
-//                 regenValue = 79.159 * pow(50-pedalValue, 0.3);
-//             } else if (pedalValue < 100) {
-//                 throttleValue = 0;
-//                 regenValue = 0;
-//             } else {
-//                 throttleValue = -56.27610464*pow(156-(pedalValue-100),0.3) + 256;
-//                 regenValue = 0;
-//             }
-//         } else {
-//             throttleValue = pedalValue;
-//             regenValue = 0;
-//         }
+        if (regenEnabled) {
+            // One pedal drive (tesla style)
+            if (pedalValue <= 50) {
+                throttleValue = 0;
+                regenValue = 79.159 * pow(50-pedalValue, 0.3);
+            } else if (pedalValue < 100) {
+                throttleValue = 0;
+                regenValue = 0;
+            } else {
+                throttleValue = -56.27610464*pow(156-(pedalValue-100),0.3) + 256;
+                regenValue = 0;
+            }
+        } else {
+            throttleValue = pedalValue;
+            regenValue = 0;
+        }
 
-//         to_motor.throttle = throttleValue;
+        to_motor.throttle = throttleValue;
 
-//         //This is if we handle on db side, rn handled on motor side
-//         // if(cruiseControlSwitch) {
-//         //     to_motor.throttle = throttleValue; //use CC value from Karthik's
-//         // } 
+        //This is if we handle on db side, rn handled on motor side
+        // if(cruiseControlSwitch) {
+        //     to_motor.throttle = throttleValue; //use CC value from Karthik's
+        // } 
         
-//         to_motor.regen = regenValue;
+        to_motor.regen = regenValue;
 
-//         to_motor.forward_en = !reverseEnabled;
-//         to_motor.reverse_en = reverseEnabled; 
+        to_motor.forward_en = !reverseEnabled;
+        to_motor.reverse_en = reverseEnabled; 
 
-//         to_motor.cruise_control_en = cruiseControlSwitch;
-//         to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
+        to_motor.cruise_control_en = cruiseControlSwitch;
+        to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
 
-//         to_motor.motor_on = true;
-//         vehicle_can_interface.send(&to_motor);
+        to_motor.motor_on = true;
+        vehicle_can_interface.send(&to_motor);
 
-//         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-//     }
-// }
+        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+    }
+}
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0; 
