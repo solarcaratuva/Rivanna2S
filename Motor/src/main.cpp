@@ -16,6 +16,7 @@ EventQueue event_queue(32 * EVENTS_EVENT_SIZE);
 Thread event_thread;
 
 MotorCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX);
+
 MotorControllerCANInterface motor_controller_can_interface(MTR_CTRL_CAN_RX,
                                                            MTR_CTRL_CAN_TX,
                                                            MTR_CTRL_CAN_STBY);
@@ -37,21 +38,73 @@ Timeout ECUMotorCommands_timeout;
 // the CAN bus is down and set the throttle to 0.
 void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 
+// RPM + Current
+uint16_t rpm, current, currentSpeed;
+bool enabled;
+double _pre_error, _integral;
+
+// set values for initalization
+double dt, _max, _min, Kp, Kd, Ki;
+
+void init(uint16_t __max, uint16_t __min, double _Kp, double _Kd, double _Ki){
+    _max = __max;
+    _min = __min;
+    Kp = _Kp;
+    Kd = _Kd;
+    Ki = _Ki;
+}
+
+uint16_t calculate(uint16_t setpoint, uint16_t pv){
+    // Calculate error
+    double error = setpoint - pv;
+    
+    // Proportional term
+    double Pout = Kp * error;
+
+    // Integral term
+    _integral += error * dt;
+    double Iout = Ki * _integral;
+
+    // Derivative term
+    double derivative = (error - _pre_error) / dt;
+    double Dout = Kd * derivative;
+    uint16_t output = (uint16_t)(Pout + Iout + Dout);
+
+    if( output > _max )
+        output = _max;
+    else if( output < _min )
+        output = _min;
+    
+    _pre_error = error;
+    return output;
+}
+
+
+
 int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
-
     event_thread.start(callback(&event_queue, &EventQueue::dispatch_forever));
 
     ECUMotorCommands_timeout.attach(
-        event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
+    event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
+    init(256,0, 0, 0, 0);
+    _pre_error = 0;
+    _integral = 0;
+    dt =  0.1;
+    
     while (true) {
-        log_debug("Main thread loop");
-        // request frames from the motor controller
-        motor_controller_can_interface.request_frames(true, true, true);
-
-        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        if(!enabled){
+            log_debug("Main thread loop");
+            // request frames from the motor controller
+            motor_controller_can_interface.request_frames(true, true, true);
+            ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        } else{
+            log_debug("Cruise Control Loop");
+            motor_controller_can_interface.request_frames(true, true, true);
+            ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        }
     }
 }
 
@@ -68,7 +121,19 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     motor_interface.sendDirection(
         can_struct->forward_en); // TODO: verify motor controller will not allow
                                  // gear change when velocity is non-zero
-    motor_interface.sendThrottle(can_struct->throttle);
+    
+
+    bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
+    if(cruiseControlEnabled) {
+         // do a calculation to send throttle
+          // double send = calculate(suggestedSpeed, ___);
+          // motor_interface.sendThrottle(send); 
+        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        motor_interface.sendThrottle(current);
+    } else {
+        motor_interface.sendThrottle(can_struct->throttle);
+    }
+    
     motor_interface.sendRegen(can_struct->regen);
 
     log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
@@ -77,19 +142,19 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
 
 void MotorControllerCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     can_struct->log(LOG_INFO);
-
+    rpm = can_struct->motor_rpm;
+    current = can_struct->motor_current;
+    currentSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
 }
 
 void MotorControllerCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     can_struct->log(LOG_INFO);
-
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
     can_struct->log(LOG_INFO);
-
     motor_state_tracker.setMotorControllerError(*can_struct);
 }
 
