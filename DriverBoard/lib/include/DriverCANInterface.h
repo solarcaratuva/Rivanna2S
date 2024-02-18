@@ -4,8 +4,12 @@
 #include "BPSCANStructs.h"
 #include "MotorControllerCANStructs.h"
 #include "CANInterface.h"
+#include "MotorControllerCANStructs.h"
+#include "PowerAuxCANStructs.h"
+#include "SolarCANStructs.h"
+#include "ECUCANStructs.h"
 
-class DriverCANInterface : public MainCANInterface {
+class DriverCANInterface : public CANInterface {
   public:
     DriverCANInterface(PinName rd, PinName td, PinName standby_pin);
     void handle(ECUMotorCommands *can_struct);
