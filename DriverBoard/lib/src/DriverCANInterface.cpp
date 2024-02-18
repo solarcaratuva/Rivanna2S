@@ -3,7 +3,7 @@
 #include "log.h"
 
 DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_pin)
-    : CANInterface(rd, td, standby_pin) {
+    : MainCANInterface(rd, td, standby_pin, uart_rx, uart_tx) {
     can.frequency(250000);
 }
 
