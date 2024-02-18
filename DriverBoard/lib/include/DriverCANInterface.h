@@ -7,7 +7,7 @@
 
 class DriverCANInterface : public MainCANInterface {
   public:
-    DriverCANInterface(PinName rd, PinName td, PinName standby_pin);
+    DriverCANInterface(PinName rd, PinName td, PinName standby_pin) : MainCANInterface(rd, td, standby_pin, NC, NC) {};
     void handle(ECUMotorCommands *can_struct) override;
     void handle(ECUPowerAuxCommands *can_struct) override;
     void handle(PowerAuxError *can_struct) override;

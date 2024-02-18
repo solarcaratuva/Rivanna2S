@@ -23,7 +23,8 @@
 #define DRO_OUT PA_0
 #define BMS_STROBE_OUT PA_3
 
-
+#define PI_UART_TX         PB_4
+#define PI_UART_RX         PB_5
 
 // #define BRAKE_LIGHT_IN PB_13
 // #define LEFT_TURN_LIGHT_IN PA_0
@@ -56,6 +57,9 @@
 #define BRAKE_LIGHTS_OUT NC
 #define DRO_OUT NC
 #define BMS_STROBE_OUT NC
+
+#define PI_UART_TX         PA_2
+#define PI_UART_RX         PA_3
 
 #endif
 

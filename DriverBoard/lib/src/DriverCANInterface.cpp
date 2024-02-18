@@ -3,11 +3,11 @@
 #include "log.h"
 
 DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_pin)
-    : MainCANInterface(rd, td, standby_pin, uart_rx, uart_tx) {
+    : CANInterface(rd, td, standby_pin) {
     can.frequency(250000);
 }
 
-DriverCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
+void DriverCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
     if (uartTX != NC) {
         char message_data[17];
         CANInterface::write_CAN_message_data_to_buffer(message_data,
