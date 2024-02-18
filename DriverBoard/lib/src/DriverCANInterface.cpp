@@ -67,24 +67,6 @@ void DriverCANInterface::message_handler() {
     while (true) {
         ThisThread::flags_wait_all(0x1);
         CANMessage message;
-        while (can.read(message)) {
-            char message_data[17];
-
-            //TODO: Write to serial message_id, message_data
-
-            CANInterface::write_CAN_message_data_to_buffer(message_data,
-                                                           &message);
-            log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s ", message.id, message.len, message_data);
-            if (message.id == BPSError_MESSAGE_ID) {
-                BPSError can_struct;
-                can_struct.deserialize(&message);
-                handle(&can_struct);
-            } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID) {
-                MotorControllerPowerStatus can_struct;
-                can_struct.deserialize(&message);
-                handle(&can_struct);
-            }
-        }
 
         while (can.read(message)) {
             char message_data[17];
@@ -94,13 +76,7 @@ void DriverCANInterface::message_handler() {
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s",
                       message.id, message.len, message_data);
 
-            if (message.id == ECUMotorCommands_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
-                ECUMotorCommands can_struct;
-                can_struct.deserialize(&message);
-                handle(&can_struct);
-            } else if (message.id == ECUPowerAuxCommands_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
+            if (message.id == ECUPowerAuxCommands_MESSAGE_ID) {
                 ECUPowerAuxCommands can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
@@ -126,39 +102,32 @@ void DriverCANInterface::message_handler() {
                 handle(&can_struct);
             } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID || message.id == MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID) {
                 log_debug("Motor Power Status");
-                send_to_pi(&message, 0x325);
                 MotorControllerPowerStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == MotorControllerDriveStatus_MESSAGE_ID || message.id == MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID) {
                 log_debug("Motor Drive Status");
-                send_to_pi(&message, 0x315);
                 MotorControllerDriveStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == MotorControllerError_MESSAGE_ID || message.id == MotorControllerError_AUX_BUS_MESSAGE_ID) {
                 log_debug("Motor Error Status");
-                send_to_pi(&message, 0x115);
                 MotorControllerError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSPackInformation_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
                 BPSPackInformation can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSError_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
                 BPSError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSCellVoltage_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
                 BPSCellVoltage can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == BPSCellTemperature_MESSAGE_ID) {
-                send_to_pi(&message, message.id);
                 BPSCellTemperature can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);

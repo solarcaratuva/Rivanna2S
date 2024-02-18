@@ -188,7 +188,7 @@ void DriverCANInterface::handle(MotorControllerError *can_struct) {
 }
 
 void DriverCANInterface::handle(ECUPowerAuxCommands *can_struct) {
-    log_debug("Sending to handler ecupoweraux");
+    log_debug("Sending to handler ecupoweraux")
     ecu_power_aux_token_bucket.handle(can_struct, ECUPowerAuxCommands_MESSAGE_ID);
 }
 
