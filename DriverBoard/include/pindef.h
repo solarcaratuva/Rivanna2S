@@ -3,23 +3,46 @@
 
 #ifdef TARGET_UVA_SOLAR_CAR
 
-#define LEFT_TURN_IN PB_1 // 17
-#define RIGHT_TURN_IN PB_14 // 28
-#define HAZARDS_IN PC_13 // 2
-#define MECHANICAL_BRAKE_IN PA_9 // 31
-#define REGEN_IN PB_15 // 29
-#define THROTTLE_VALUE_IN PB_13 // 27
-#define FORWARD_REVERSE_IN PB_2 // 18
+// #define LEFT_TURN_IN PB_1 // 17
+// #define RIGHT_TURN_IN PB_14 // 28
+// #define HAZARDS_IN PC_13 // 2
+// #define MECHANICAL_BRAKE_IN PA_9 // 31
+// #define REGEN_IN PB_15 // 29
+// #define THROTTLE_VALUE_IN PB_13 // 27
+// #define FORWARD_REVERSE_IN PB_2 // 18
+
+
+// #define CAN_RX             PA_11 // Rx for MCU
+// #define CAN_TX             PA_12
+// #define CAN_STBY           PB_10 // Digital Output
+
+// #define LEFT_TURN_OUT PA_0 // 8
+// #define RIGHT_TURN_OUT PA_1 // 9
+// #define BRAKE_LIGHTS_OUT PB_12 // 26
+// #define DRO_OUT PB_11 // 25
+// #define BMS_STROBE_OUT PB_0 // 16
+// #define THROTTLE PB_13 // 27
+// #define REVERSE_IN PB_2 // 18
+
+#define LEFT_TURN_IN PA_10 // 17
+#define RIGHT_TURN_IN PA_9 // 28
+#define HAZARDS_IN PB_15 // 2
+#define MECHANICAL_BRAKE_IN PA_8 // 31
+#define REGEN_IN PB_11 // 29
+#define THROTTLE_VALUE_IN PB_2 // 27
+#define CRUISE_CONTROL_IN_POSITIVE PB_13
+#define CRUISE_CONTROL_IN_NEGATIVE PB_12
+#define CRUISE_CONTROL_IN_ENABLED PB_14
 
 #define CAN_RX             PA_11 // Rx for MCU
 #define CAN_TX             PA_12
 #define CAN_STBY           PB_10 // Digital Output
 
-#define LEFT_TURN_OUT PA_0 // 8
+#define LEFT_TURN_OUT PA_2 // 8
 #define RIGHT_TURN_OUT PA_1 // 9
-#define BRAKE_LIGHTS_OUT PB_12 // 26
-#define DRO_OUT PB_11 // 25
-#define BMS_STROBE_OUT PB_0 // 16
+#define BRAKE_LIGHTS_OUT PA_4 // 26
+#define DRO_OUT PB_11 // 25 
+#define BMS_STROBE_OUT PA_3 // 16
 #define THROTTLE PB_13 // 27
 #define REVERSE_IN PB_2 // 18
 

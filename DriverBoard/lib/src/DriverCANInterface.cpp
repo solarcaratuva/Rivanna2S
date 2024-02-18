@@ -85,5 +85,84 @@ void DriverCANInterface::message_handler() {
                 handle(&can_struct);
             }
         }
+
+        while (can.read(message)) {
+            char message_data[17];
+            
+            CANInterface::write_CAN_message_data_to_buffer(message_data,
+                                                           &message);
+            log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s",
+                      message.id, message.len, message_data);
+
+            if (message.id == ECUMotorCommands_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                ECUMotorCommands can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == ECUPowerAuxCommands_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                ECUPowerAuxCommands can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == PowerAuxError_MESSAGE_ID) {
+                PowerAuxError can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == SolarCurrent_MESSAGE_ID) {
+                SolarCurrent can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == SolarTemp_MESSAGE_ID) {
+                SolarTemp can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == SolarVoltage_MESSAGE_ID) {
+                SolarVoltage can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == SolarPhoto_MESSAGE_ID) {
+                SolarPhoto can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID || message.id == MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID) {
+                log_debug("Motor Power Status");
+                send_to_pi(&message, 0x325);
+                MotorControllerPowerStatus can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == MotorControllerDriveStatus_MESSAGE_ID || message.id == MotorControllerDriveStatus_AUX_BUS_MESSAGE_ID) {
+                log_debug("Motor Drive Status");
+                send_to_pi(&message, 0x315);
+                MotorControllerDriveStatus can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == MotorControllerError_MESSAGE_ID || message.id == MotorControllerError_AUX_BUS_MESSAGE_ID) {
+                log_debug("Motor Error Status");
+                send_to_pi(&message, 0x115);
+                MotorControllerError can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == BPSPackInformation_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                BPSPackInformation can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == BPSError_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                BPSError can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == BPSCellVoltage_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                BPSCellVoltage can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == BPSCellTemperature_MESSAGE_ID) {
+                send_to_pi(&message, message.id);
+                BPSCellTemperature can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            }
+        }
     }
 }
