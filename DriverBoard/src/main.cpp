@@ -173,8 +173,11 @@ int main() {
         vehicle_can_interface.send(&to_motor);
 
         //Send to handler to determine whether the message should be sent to pi
+        CANMessage motor_message;
+
         log_debug("Sending to handler ecumotorcommands");
-        ecu_motor_token_bucket.handle(&to_motor, ECUMotorCommands_MESSAGE_ID);
+        to_motor.serialize(&motor_message);
+        ecu_motor_token_bucket.handle(&motor_message, ECUMotorCommands_MESSAGE_ID);
 
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
@@ -183,6 +186,8 @@ int main() {
 
 
 void DriverCANInterface::handle(MotorControllerError *can_struct) {
+    //Fixing message that is sent to handler; convert can struct as message using .serialize()
+
     log_debug("Sending to handler mcerror");
     motor_controller_error_token_bucket.handle(can_struct, MotorControllerError_MESSAGE_ID);
 }
@@ -204,48 +209,48 @@ void DriverCANInterface::handle(SolarCurrent *can_struct) {
 
 void DriverCANInterface::handle(SolarVoltage *can_struct) {
     log_debug("Sending to handler solarvotlage");
-    solar_voltage_token_bucket.handle(can_struct, SolarVoltage_MESSAGE_ID);
+    solar_voltage_token_bucket.handle(&can_struct, SolarVoltage_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarTemp *can_struct) {
     log_debug("Sending to handler solartemp");
-    solar_temp_token_bucket.handle(can_struct, SolarTemp_MESSAGE_ID);
+    solar_temp_token_bucket.handle(&can_struct, SolarTemp_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarPhoto *can_struct) {
     log_debug("Sending to handler solarphoto");
-    solar_photo_token_bucket.handle(can_struct, SolarPhoto_MESSAGE_ID);
+    solar_photo_token_bucket.handle(&can_struct, SolarPhoto_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     rpmPositive = can_struct->motor_rpm > 0;
     log_debug("Sending to handler mcpowerstatus");
-    motor_controller_power_token_bucket.handle(can_struct, MotorControllerPowerStatus_MESSAGE_ID);
+    motor_controller_power_token_bucket.handle(&can_struct, MotorControllerPowerStatus_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     log_debug("Sending to handler mcdrivestatus");
-    motor_controller_drive_token_bucket.handle(can_struct, MotorControllerDriveStatus);
+    motor_controller_drive_token_bucket.handle(&can_struct, MotorControllerDriveStatus);
 }
 
 void DriverCANInterface::handle(BPSPackInformation *can_struct) {
     log_debug("Sending to handler bpspackinformation");
-    motor_controller_drive_token_bucket.handle(can_struct, BPSPackInformation);
+    motor_controller_drive_token_bucket.handle(&can_struct, BPSPackInformation);
 }
 
 void DriverCANInterface::handle(BPSCellVoltage *can_struct) {
     log_debug("Sending to handler bpscellvoltage");
-    motor_controller_drive_token_bucket.handle(can_struct, BPSCellVoltage);
+    motor_controller_drive_token_bucket.handle(&can_struct, BPSCellVoltage);
 }
 
 void DriverCANInterface::handle(BPSCellTemperature *can_struct) {
     log_debug("Sending to handler bpscelltemp");
-    motor_controller_drive_token_bucket.handle(can_struct, BPSCellTemperature);
+    motor_controller_drive_token_bucket.handle(&can_struct, BPSCellTemperature);
 }
 
 //Should be sent straight to raspberry pi
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     log_debug("Sending to handler bpserror");
-    bps_error_token_bucket.handle(can_struct, BPSError_MESSAGE_ID);
+    bps_error_token_bucket.handle(&can_struct, BPSError_MESSAGE_ID);
 }
