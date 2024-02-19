@@ -94,9 +94,9 @@ void read_inputs() {
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
 
-    if(cruiseControlSwitch) {
-        log_debug("cruiseControlSwitch pressed");
-    }
+    // if(cruiseControlSwitch) {
+    //     log_debug("cruiseControlSwitch pressed");
+    // }
     // cruiseControlSwitch ? log_debug("CC switch pressed") : log_debug("CC switch not pressed");
     // cruiseIncrease ? log_debug("CC increase switch pressed") : log_debug("CC increase switch not pressed");
     // cruiseDecrease ? log_debug("CC decrease switch pressed") : log_debug("CC decrease switch not pressed");
