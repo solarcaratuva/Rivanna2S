@@ -17,7 +17,7 @@
 PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
                                            MAIN_CAN_STBY);
 
-bool flashHazards, flashLSignal, flashRSignal, flashBMS = false;
+bool hazardsState, brakeLightsState, headLightsState, leftTurnSignalState, rightTurnSignalState, flashBMS = false;
 Thread signalFlashThread;
 
 DigitalOut brake_lights(BRAKE_LIGHT_EN);
@@ -27,33 +27,34 @@ DigitalOut bms_strobe(BMS_STROBE_EN);
 DigitalOut drl(DRL_EN);
 
 void signalFlashHandler() {
-    while (true) {
-        //log_debug("flash_bms: %d", flashBMS);
-        log_debug("Flash thread");
-        if (!flashBMS) {
+    // Change lights based on can information
+    while(true){
+        log_debug("Flash Thread");
+        if(!flashBMS){
             bms_strobe = 0;
         }
-        if (flashHazards || flashLSignal || flashRSignal || flashBMS) {
-            if (flashBMS) {
+        if(hazardsState || leftTurnSignalState || rightTurnSignalState || flashBMS){
+            if(flashBMS){
                 bms_strobe = !bms_strobe;
             }
-            if (flashHazards) {
-                bool leftTurnSignalState = leftTurnSignal;
-                leftTurnSignal = !leftTurnSignalState;
-                rightTurnSignal = !leftTurnSignalState;
-            } else if (flashLSignal) {
+            if(hazardsState){
+                bool currLeftSignalState = leftTurnSignal;
+                // practically synchronziing the two signal lights
+                // its flashing
+                leftTurnSignalState = !currLeftSignalState;
+                rightTurnSignalState = !currLeftSignalState;  
+            } else if(leftTurnSignalState){
                 leftTurnSignal = !leftTurnSignal;
                 rightTurnSignal = false;
-            } else if (flashRSignal) {
+            } else if(rightTurnSignalState){
                 rightTurnSignal = !rightTurnSignal;
                 leftTurnSignal = false;
-            } else {
+            } else{
                 leftTurnSignal = false;
                 rightTurnSignal = false;
             }
-
             ThisThread::sleep_for(FLASH_PERIOD);
-        } else {
+        } else{
             leftTurnSignal = false;
             rightTurnSignal = false;
         }
@@ -82,20 +83,17 @@ int main() {
 }
 
 void PowerAuxCANInterface::handle(ECUPowerAuxCommands *can_struct) {
-    can_struct->log(LOG_DEBUG);
-    if (can_struct->headlights) {
+    // Process Can data
+    can_struct->log(LOG_LEVEL);
+    if(can_struct->headlights){
         flashBMS = can_struct->hazards;
         signalFlashThread.flags_set(0x1);
-
         return;
     }
-
-    brake_lights = can_struct->brake_lights;
-
-    flashLSignal = can_struct->left_turn_signal;
-    flashRSignal = can_struct->right_turn_signal;
-    flashHazards = can_struct->hazards;
-
+    hazardsState = can_struct->hazards;
+    brakeLightsState = can_struct->brake_lights;
+    headLightsState = can_struct->headlights;
+    leftTurnSignalState = can_struct->left_turn_signal;
+    rightTurnSignalState = can_struct->right_turn_signal;
     signalFlashThread.flags_set(0x1);
-    
 }
