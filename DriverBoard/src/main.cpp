@@ -25,7 +25,6 @@ bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
-bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
 
@@ -42,14 +41,13 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
-DigitalIn reverseSwitch(REVERSE_IN);
 
 //TODO: add pins for cruise control
 DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
 DigitalIn cruiseIncrease(CRUISE_INC);
 DigitalIn cruiseDecrease(CRUISE_DEC);
 
-AnalogIn throttle(THROTTLE, 5.0f);
+AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
@@ -92,7 +90,6 @@ void read_inputs() {
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
-    reverseEnabled = reverseSwitch.read();
 
     // if(cruiseControlSwitch) {
     //     log_debug("cruiseControlSwitch pressed");
@@ -107,7 +104,6 @@ void read_inputs() {
     // log_debug(regenEnabled);
     // log_debug(flashLSignal);
     // log_debug(flashRSignal);
-    // log_debug(reverseEnabled);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
 }
@@ -186,8 +182,8 @@ int main() {
         
         to_motor.regen = regenValue;
 
-        to_motor.forward_en = !reverseEnabled;
-        to_motor.reverse_en = reverseEnabled; 
+        to_motor.forward_en = true;
+        to_motor.reverse_en = false; 
 
         to_motor.cruise_control_en = cruiseControlSwitch;
         to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
