@@ -9,6 +9,9 @@
 #define CRUISE_INC PB_13
 #define CRUISE_DEC PB_12
 
+#define PI_UART_TX         PB_4
+#define PI_UART_RX         PB_5
+
 #define LEFT_TURN_IN PA_9
 #define RIGHT_TURN_IN PA_10
 #define HAZARDS_IN PB_15
