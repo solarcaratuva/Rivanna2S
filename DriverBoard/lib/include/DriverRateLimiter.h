@@ -2,7 +2,7 @@
 #include <sstream>
 
 
-// Reimplementation
+// Reimplementation of message handler
 class TokenBucket {
 public:
     TokenBucket(int tokens, int time_unit);

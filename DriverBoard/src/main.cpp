@@ -28,6 +28,7 @@ bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
+int RPM = 0;
 
 
 
@@ -42,8 +43,8 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
-DigitalIn reverseSwitch(REVERSE_IN);
-AnalogIn throttle(THROTTLE, 5.0f);
+DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
+AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
@@ -113,7 +114,6 @@ void read_inputs() {
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
-    reverseEnabled = reverseSwitch.read();
     brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
 }
 
@@ -271,25 +271,25 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 void DriverCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     log_debug("Sending to handler mcdrivestatus");
     can_struct->serialize(&motor_controller_drive_message);
-    motor_controller_drive_token_bucket.handle(&motor_controller_drive_message, MotorControllerDriveStatus);
+    motor_controller_drive_token_bucket.handle(&motor_controller_drive_message, MotorControllerDriveStatus_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(BPSPackInformation *can_struct) {
     log_debug("Sending to handler bpspackinformation");
     can_struct->serialize(&bps_pack_message);
-    motor_controller_drive_token_bucket.handle(&bps_pack_message, BPSPackInformation);
+    motor_controller_drive_token_bucket.handle(&bps_pack_message, BPSPackInformation_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(BPSCellVoltage *can_struct) {
     log_debug("Sending to handler bpscellvoltage");
     can_struct->serialize(&bps_voltage_message);
-    motor_controller_drive_token_bucket.handle(&bps_voltage_message, BPSCellVoltage);
+    motor_controller_drive_token_bucket.handle(&bps_voltage_message, BPSCellVoltage_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(BPSCellTemperature *can_struct) {
     log_debug("Sending to handler bpscelltemp");
     can_struct->serialize(&bps_temp_message);
-    motor_controller_drive_token_bucket.handle(&bps_temp_message, BPSCellTemperature);
+    motor_controller_drive_token_bucket.handle(&bps_temp_message, BPSCellTemperature_MESSAGE_ID);
 }
 
 //Should be sent straight to raspberry pi
