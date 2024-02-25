@@ -9,8 +9,8 @@
 #define CRUISE_INC PB_13
 #define CRUISE_DEC PB_12
 
-#define LEFT_TURN_IN PA_10
-#define RIGHT_TURN_IN PA_9
+#define LEFT_TURN_IN PA_9
+#define RIGHT_TURN_IN PA_10
 #define HAZARDS_IN PB_15
 #define MECHANICAL_BRAKE_IN PA_8
 #define REGEN_IN PB_11
@@ -23,8 +23,9 @@
 #define DRO_OUT PA_0
 #define BMS_STROBE_OUT PA_3
 
-#define PI_UART_TX         PB_4
-#define PI_UART_RX         PB_5
+#define CAN_RX PA_11
+#define CAN_TX PA_12
+#define CAN_STBY PB_10
 
 // #define BRAKE_LIGHT_IN PB_13
 // #define LEFT_TURN_LIGHT_IN PA_0
