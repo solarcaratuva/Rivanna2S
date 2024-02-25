@@ -53,6 +53,35 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
+TokenBucket ecu_motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket ecu_power_aux_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_current_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_voltage_token_bucket(1, 1000); //(number of tokens, milliseconds)
+TokenBucket solar_temp_token_bucket(1, 2000); //(number of tokens, milliseconds)
+TokenBucket solar_photo_token_bucket(1, 2000); //(number of tokens, milliseconds)
+TokenBucket motor_controller_power_token_bucket(1, 1000);
+TokenBucket motor_controller_drive_token_bucket(1,1000);
+TokenBucket bps_pack_token_bucket(1,2000);
+TokenBucket bps_cell_voltage_token_bucket(1,2000);
+TokenBucket bps_cell_temp_token_bucket(1,2000);
+TokenBucket bps_error_token_bucket(1,500);
+TokenBucket power_aux_error_token_bucket(1,500);
+TokenBucket motor_controller_error_token_bucket(1,500);
+
+CANMessage ecu_power_aux_message;
+CANMessage solar_current_message;
+CANMessage solar_voltage_message;
+CANMessage solar_temp_message;
+CANMessage solar_photo_message;
+CANMessage motor_controller_power_message;
+CANMessage motor_controller_drive_message;
+CANMessage bps_pack_message;
+CANMessage bps_voltage_message;
+CANMessage bps_temp_message;
+CANMessage bps_error;
+CANMessage power_aux_error;
+CANMessage motor_controller_error;
+
 /*
 A lot of the outputs are active low. However, this might be confusing to read.
 */
@@ -173,11 +202,12 @@ int main() {
         //Send all messages to CAN Interface
         vehicle_can_interface.send(&to_motor);
 
-        //Send to handler to determine whether the message should be sent to pi
+        //Serialize the CAN Message to prepare to send to handler
         CANMessage motor_message;
-
-        log_debug("Sending to handler ecumotorcommands");
         to_motor.serialize(&motor_message);
+
+        //Send to handler
+        log_debug("Sending to handler ecumotorcommands");
         ecu_motor_token_bucket.handle(&motor_message, ECUMotorCommands_MESSAGE_ID);
 
 
@@ -190,69 +220,82 @@ void DriverCANInterface::handle(MotorControllerError *can_struct) {
     //Fixing message that is sent to handler; convert can struct as message using .serialize()
 
     log_debug("Sending to handler mcerror");
-    motor_controller_error_token_bucket.handle(can_struct, MotorControllerError_MESSAGE_ID);
+    can_struct->serialize(&motor_controller_error);
+    motor_controller_error_token_bucket.handle(&motor_controller_error, MotorControllerError_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(ECUPowerAuxCommands *can_struct) {
-    log_debug("Sending to handler ecupoweraux")
-    ecu_power_aux_token_bucket.handle(can_struct, ECUPowerAuxCommands_MESSAGE_ID);
+    log_debug("Sending to handler ecupoweraux");
+    can_struct->serialize(&ecu_power_aux_message);
+    ecu_power_aux_token_bucket.handle(&ecu_power_aux_message, ECUPowerAuxCommands_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(PowerAuxError *can_struct) {
     log_debug("Sending to handler powerauxerror");
-    power_aux_error_token_bucket.handle(can_struct, PowerAuxError_MESSAGE_ID);
+    can_struct->serialize(&power_aux_error);
+    power_aux_error_token_bucket.handle(&power_aux_error, PowerAuxError_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarCurrent *can_struct) {
     log_debug("Sending to handler solarcurrent");
-    solar_current_token_bucket.handle(can_struct, SolarCurrent_MESSAGE_ID);
+    can_struct->serialize(&solar_current_message);
+    solar_current_token_bucket.handle(&solar_current_message, SolarCurrent_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarVoltage *can_struct) {
     log_debug("Sending to handler solarvotlage");
-    solar_voltage_token_bucket.handle(&can_struct, SolarVoltage_MESSAGE_ID);
+    can_struct->serialize(&solar_voltage_message);
+    solar_voltage_token_bucket.handle(&solar_voltage_message, SolarVoltage_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarTemp *can_struct) {
     log_debug("Sending to handler solartemp");
-    solar_temp_token_bucket.handle(&can_struct, SolarTemp_MESSAGE_ID);
+    can_struct->serialize(&solar_temp_message);
+    solar_temp_token_bucket.handle(&solar_temp_message, SolarTemp_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(SolarPhoto *can_struct) {
     log_debug("Sending to handler solarphoto");
-    solar_photo_token_bucket.handle(&can_struct, SolarPhoto_MESSAGE_ID);
+    can_struct->serialize(&solar_photo_message);
+    solar_photo_token_bucket.handle(&solar_photo_message, SolarPhoto_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0; 
     RPM = can_struct->motor_rpm; 
     log_debug("Sending to handler mcpowerstatus");
-    motor_controller_power_token_bucket.handle(&can_struct, MotorControllerPowerStatus_MESSAGE_ID);
+    can_struct->serialize(&motor_controller_power_message);
+    motor_controller_power_token_bucket.handle(&motor_controller_power_message, MotorControllerPowerStatus_MESSAGE_ID);
 }
 
 void DriverCANInterface::handle(MotorControllerDriveStatus *can_struct) {
     log_debug("Sending to handler mcdrivestatus");
-    motor_controller_drive_token_bucket.handle(&can_struct, MotorControllerDriveStatus);
+    can_struct->serialize(&motor_controller_drive_message);
+    motor_controller_drive_token_bucket.handle(&motor_controller_drive_message, MotorControllerDriveStatus);
 }
 
 void DriverCANInterface::handle(BPSPackInformation *can_struct) {
     log_debug("Sending to handler bpspackinformation");
-    motor_controller_drive_token_bucket.handle(&can_struct, BPSPackInformation);
+    can_struct->serialize(&bps_pack_message);
+    motor_controller_drive_token_bucket.handle(&bps_pack_message, BPSPackInformation);
 }
 
 void DriverCANInterface::handle(BPSCellVoltage *can_struct) {
     log_debug("Sending to handler bpscellvoltage");
-    motor_controller_drive_token_bucket.handle(&can_struct, BPSCellVoltage);
+    can_struct->serialize(&bps_voltage_message);
+    motor_controller_drive_token_bucket.handle(&bps_voltage_message, BPSCellVoltage);
 }
 
 void DriverCANInterface::handle(BPSCellTemperature *can_struct) {
     log_debug("Sending to handler bpscelltemp");
-    motor_controller_drive_token_bucket.handle(&can_struct, BPSCellTemperature);
+    can_struct->serialize(&bps_temp_message);
+    motor_controller_drive_token_bucket.handle(&bps_temp_message, BPSCellTemperature);
 }
 
 //Should be sent straight to raspberry pi
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     log_debug("Sending to handler bpserror");
-    bps_error_token_bucket.handle(&can_struct, BPSError_MESSAGE_ID);
+    can_struct->serialize(&bps_error);
+    bps_error_token_bucket.handle(&bps_error, BPSError_MESSAGE_ID);
 }
