@@ -9,8 +9,8 @@
 #define CRUISE_INC PB_13
 #define CRUISE_DEC PB_12
 
-#define LEFT_TURN_IN PA_10
-#define RIGHT_TURN_IN PA_9
+#define LEFT_TURN_IN PA_9
+#define RIGHT_TURN_IN PA_10
 #define HAZARDS_IN PB_15
 #define MECHANICAL_BRAKE_IN PA_8
 #define REGEN_IN PB_11
