@@ -23,7 +23,9 @@
 #define DRO_OUT PA_0
 #define BMS_STROBE_OUT PA_3
 
-
+#define CAN_RX PA_11
+#define CAN_TX PA_12
+#define CAN_STBY PB_10
 
 // #define BRAKE_LIGHT_IN PB_13
 // #define LEFT_TURN_LIGHT_IN PA_0
