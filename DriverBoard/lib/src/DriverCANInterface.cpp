@@ -1,6 +1,7 @@
 #include "DriverCANInterface.h"
 #include "MotorControllerCANStructs.h"
 #include "log.h"
+#include "pindef.h"
 
 DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_pin)
     : CANInterface(rd, td, standby_pin) {
@@ -8,7 +9,7 @@ DriverCANInterface::DriverCANInterface(PinName rd, PinName td, PinName standby_p
 }
 
 void DriverCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
-    if (uartTX != NC) {
+    if (PI_UART_TX != NC) {
         char message_data[17];
         CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            message);
@@ -24,7 +25,7 @@ void DriverCANInterface::send_to_pi(CANMessage *message, uint16_t message_id) {
         data_to_pi[24] = 250;
 
         log_debug("Raw UART message %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", data_to_pi[0], data_to_pi[1], data_to_pi[2], data_to_pi[3], data_to_pi[4], data_to_pi[5], data_to_pi[6], data_to_pi[7], data_to_pi[8], data_to_pi[9], data_to_pi[10], data_to_pi[11], data_to_pi[12], data_to_pi[13], data_to_pi[14], data_to_pi[15], data_to_pi[16], data_to_pi[17], data_to_pi[18], data_to_pi[19], data_to_pi[20], data_to_pi[21], data_to_pi[22], data_to_pi[23], data_to_pi[24]);
-        static BufferedSerial raspberry_pi(uartTX, uartRX, 9600);
+        static BufferedSerial raspberry_pi(PI_UART_TX, PI_UART_RX, 9600);
         raspberry_pi.write(data_to_pi, sizeof(data_to_pi));
     }
 }

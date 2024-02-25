@@ -26,7 +26,6 @@ bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
-bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
 
@@ -44,12 +43,6 @@ DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
 DigitalIn reverseSwitch(REVERSE_IN);
-
-//TODO: add pins for cruise control
-DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
-DigitalIn cruiseIncrease(CRUISE_INC);
-DigitalIn cruiseDecrease(CRUISE_DEC);
-
 AnalogIn throttle(THROTTLE, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
@@ -121,23 +114,7 @@ void read_inputs() {
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
     reverseEnabled = reverseSwitch.read();
-
-    if(cruiseControlSwitch) {
-        log_debug("cruiseControlSwitch pressed");
-    }
-    cruiseControlSwitch ? log_debug("CC switch pressed") : log_debug("CC switch not pressed");
-    cruiseIncrease ? log_debug("CC increase switch pressed") : log_debug("CC increase switch not pressed");
-    cruiseDecrease ? log_debug("CC decrease switch pressed") : log_debug("CC decrease switch not pressed");
-    
-    //log_debug(cruiseControlSwitch);
-    // log_debug(cruiseDecrease);
-    // log_debug(cruiseIncrease);
-    // log_debug(regenEnabled);
-    // log_debug(flashLSignal);
-    // log_debug(flashRSignal);
-    // log_debug(reverseEnabled);
-    // log_debug(flashHazards);
-    brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+    brakeLightsEnabled = brake_lights.read() || (regenEnabled && rpmPositive);
 }
 
 void signalFlashHandler() {
@@ -214,8 +191,8 @@ int main() {
         
         to_motor.regen = regenValue;
 
-        to_motor.forward_en = !reverseEnabled;
-        to_motor.reverse_en = reverseEnabled; 
+        to_motor.forward_en = true;
+        to_motor.reverse_en = false; 
 
         to_motor.cruise_control_en = cruiseControlSwitch;
         to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
@@ -284,7 +261,8 @@ void DriverCANInterface::handle(SolarPhoto *can_struct) {
 }
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
-    rpmPositive = can_struct->motor_rpm > 0;
+    // rpmPositive = can_struct->motor_rpm > 0; 
+    RPM = can_struct->motor_rpm; 
     log_debug("Sending to handler mcpowerstatus");
     can_struct->serialize(&motor_controller_power_message);
     motor_controller_power_token_bucket.handle(&motor_controller_power_message, MotorControllerPowerStatus_MESSAGE_ID);
