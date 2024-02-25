@@ -24,7 +24,7 @@ class DriverCANInterface : public CANInterface {
 
     int send(CANStruct *can_struct);
 
-    void send_to_pi(CANMessage *message, uint16_t message_id);
+    static void send_to_pi(CANMessage *message, uint16_t message_id);
 
   private:
     void message_handler();
