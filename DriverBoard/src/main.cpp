@@ -21,6 +21,9 @@
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
+const bool PIN_ON = false;
+const bool PIN_OFF = true;
+
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
@@ -33,7 +36,7 @@ Thread signalFlashThread;
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
-DigitalOut dro(DRO_OUT);
+DigitalOut drl(DRL_OUT);
 DigitalOut bms_strobe(BMS_STROBE_OUT);
 
 DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
@@ -57,13 +60,6 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 int RPM = 0;
-
-
-/*
-A lot of the outputs are active low. However, this might be confusing to read.
-*/
-const bool ACTIVELOW_ON = false;
-const bool ACTIVELOW_OFF = true;
 
 bool flashHazardsState = false;
 
@@ -112,21 +108,21 @@ void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = true;
-            leftTurnSignal = true;
+            rightTurnSignal = PIN_ON;
+            leftTurnSignal = PIN_ON;
         } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = false;
+            rightTurnSignal = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
             rightTurnSignal = !rightTurnSignal;
         } else {
-            leftTurnSignal = false;
-            rightTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
+            rightTurnSignal = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -141,7 +137,7 @@ int main() {
 
     signalFlashThread.start(signalFlashHandler);
 
-    dro = ACTIVELOW_ON;
+    drl = PIN_ON;
 
     while (true) {
         log_debug("Main thread loop");
