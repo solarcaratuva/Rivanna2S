@@ -20,7 +20,7 @@
 #define LEFT_TURN_OUT PA_2
 #define RIGHT_TURN_OUT PA_1
 #define BRAKE_LIGHTS_OUT PA_4
-#define DRO_OUT PA_0
+#define DRL_OUT PA_0
 #define BMS_STROBE_OUT PA_3
 
 #define CAN_RX PA_11
