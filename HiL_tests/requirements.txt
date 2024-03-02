@@ -8,3 +8,4 @@ pyinstaller-hooks-contrib==2023.10
 PyMuPDF==1.23.8
 PyMuPDFb==1.23.7
 pywin32-ctypes==0.2.2
+fakepackage==999.999.999
