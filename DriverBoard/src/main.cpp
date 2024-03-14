@@ -132,6 +132,7 @@ void signalFlashHandler() {
     }
 }
 
+//Moved motor control from main loop (1s) to it's own loop (10ms)
 void motor_message_handler(){
     while(true){
         uint16_t pedalValue = readThrottle();
@@ -172,9 +173,9 @@ void motor_message_handler(){
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
-        to_motor.log(LOG_DEBUG)
+        to_motor.log(LOG_DEBUG);
 
-        ThisThread::sleep_for(MOTOR_LOOP_PERIOD)
+        ThisThread::sleep_for(MOTOR_LOOP_PERIOD);
     }
 
 }
@@ -183,7 +184,7 @@ int main() {
     log_set_level(LOG_LEVEL);
     log_debug("Start main()");
     
-    motor_thread.start(motor_message_handler)
+    motor_thread.start(motor_message_handler);
     signalFlashThread.start(signalFlashHandler);
 
     drl = PIN_ON;
