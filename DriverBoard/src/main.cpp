@@ -30,8 +30,8 @@ bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
-Thread signalFlashThread
-Thread motor_thread
+Thread signalFlashThread;
+Thread motor_thread;
 
 
 
