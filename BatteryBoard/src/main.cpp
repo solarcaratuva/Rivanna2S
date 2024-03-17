@@ -212,6 +212,12 @@ int main() {
         x.hazards = 1;
         }
         vehicle_can_interface.send(&x);
+        if (contact12V_has_gone_high && !contact12_input.read()) {
+            mppt_precharge.write(0);
+            discharge_enable.write(0);
+            motor_precharge.write(0);
+            charge_enable.write(0);
+        }
     }
 }
 
