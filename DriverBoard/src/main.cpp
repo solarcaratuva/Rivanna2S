@@ -8,8 +8,9 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL          LOG_INFO
+#define LOG_LEVEL          LOG_DEBUG
 #define MAIN_LOOP_PERIOD   1s
+#define MOTOR_LOOP_PERIOD  10ms
 #define MOTRO_LOOP_PERIOD  10ms
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
@@ -22,6 +23,9 @@
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
+
+const bool PIN_ON = false;
+const bool PIN_OFF = true;
 
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
@@ -37,7 +41,7 @@ int RPM = 0;
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
-DigitalOut dro(DRO_OUT);
+DigitalOut drl(DRL_OUT);
 DigitalOut bms_strobe(BMS_STROBE_OUT);
 
 DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
@@ -49,6 +53,8 @@ DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
 AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
+
+ECUMotorCommands to_motor;
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -123,46 +129,29 @@ void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = true;
-            leftTurnSignal = true;
+            rightTurnSignal = PIN_ON;
+            leftTurnSignal = PIN_ON;
         } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = false;
+            rightTurnSignal = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
             rightTurnSignal = !rightTurnSignal;
         } else {
-            leftTurnSignal = false;
-            rightTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
+            rightTurnSignal = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
 }
 
-
-int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
-
-    
-
-    signalFlashThread.start(signalFlashHandler);
-
-    dro = ACTIVELOW_ON;
-
-    while (true) {
-        log_debug("Main thread loop");
-
-        
-
-        read_inputs();
-
-        ECUMotorCommands to_motor;
-
+//Moved motor control from main loop (1s) to it's own loop (10ms)
+void motor_message_handler(){
+    while(true){
         uint16_t pedalValue = readThrottle();
         uint16_t regenValue;    
         uint16_t throttleValue;
@@ -212,6 +201,25 @@ int main() {
         log_debug("Sending to handler ecumotorcommands\n");
         ecu_motor_token_bucket.handle(&motor_message, ECUMotorCommands_MESSAGE_ID);
 
+
+        ThisThread::sleep_for(MOTOR_LOOP_PERIOD);
+    }
+
+}
+
+int main() {
+    log_set_level(LOG_LEVEL);
+    log_debug("Start main()");
+    
+    motor_thread.start(motor_message_handler);
+    signalFlashThread.start(signalFlashHandler);
+
+    drl = PIN_ON;
+
+    while (true) {
+        log_debug("Main thread loop");
+
+        read_inputs();
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
