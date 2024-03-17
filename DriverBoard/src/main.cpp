@@ -10,6 +10,7 @@
 
 #define LOG_LEVEL          LOG_INFO
 #define MAIN_LOOP_PERIOD   1s
+#define MOTRO_LOOP_PERIOD  10ms
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define IDLE_PERIOD        100ms
@@ -28,6 +29,7 @@ bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
+Thread motor_thread;
 int RPM = 0;
 
 
