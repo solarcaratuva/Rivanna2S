@@ -19,7 +19,7 @@ set(TEST_SOURCES
 set(SOURCE_FILES
     ../PowerAux/lib/include/SignalFlashHandler.h
     ../PowerAux/lib/include/TestSignalControl.h
-    #../PowerAux/lib/src/SignalFlashHandler.cpp
+    ../PowerAux/lib/src/SignalFlashHandler.cpp
     ../PowerAux/lib/src/TestSignalControl.cpp
     ethan.h
     ethan.cpp
