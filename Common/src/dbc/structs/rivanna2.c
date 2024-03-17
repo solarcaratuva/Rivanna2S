@@ -895,3 +895,4 @@ bool rivanna2_solar_photo_panel4_photo_is_in_range(uint16_t value)
 
     return (true);
 }
+

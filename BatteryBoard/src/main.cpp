@@ -15,7 +15,7 @@
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define CHARGE_PAUSE    100ms
-#define PRECHARGE_CHARGING 2500ms
+#define PRECHARGE_CHARGING 4000ms
 #define PRECHARGE_OVERLAP  500ms
 
 DigitalIn aux_input(AUX_PLUS);

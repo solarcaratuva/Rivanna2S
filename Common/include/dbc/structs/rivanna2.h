@@ -188,6 +188,8 @@ struct rivanna2_ecu_motor_commands_t {
     uint8_t motor_on;
 };
 
+
+
 /**
  * Signals in message ECUPowerAuxCommands.
  *
