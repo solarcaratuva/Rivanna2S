@@ -6,6 +6,11 @@
 #define RIVANNA2_MPPT_COMMANDS_280_ID (0x280u)
 #define RIVANNA2_MPPT_COMMANDS_480_ID (0x480u)
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+
 
 /*
  Data from CAN message in MPPTCANStruct

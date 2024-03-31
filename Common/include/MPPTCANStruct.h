@@ -6,7 +6,7 @@
 #ifndef MPPT_CAN_INTERFACE_H
 #define MPPT_CAN_INTERFACE_H
 
-typedef struct MPPT_CAN_180
+typedef struct mppt_can_180_currIn_voltIn
     : CANStruct,
     rivanna2_mppt_commands_180_t {
 
@@ -28,9 +28,9 @@ typedef struct MPPT_CAN_180
             return RIVANNA2_MPPT_COMMANDS_180_ID;
         }
 
-    } MPPT_CAN_180;
+    } mppt_can_180_curr_and_volt_in;
 
-typedef struct MPPT_CAN_280
+typedef struct mppt_can_280_voltOut_powerIn
     : CANStruct,
     rivanna2_mppt_commands_280_t {
 
@@ -52,9 +52,9 @@ typedef struct MPPT_CAN_280
             return RIVANNA2_MPPT_COMMANDS_280_ID;
         }
 
-    } MPPT_CAN_280;
+    } mppt_can_280_voltOut_powerIn;
 
-typedef struct MPPT_CAN_480
+typedef struct mppt_can_480_temperatures
     : CANStruct,
     rivanna2_mppt_commands_480_t {
 
@@ -76,7 +76,7 @@ typedef struct MPPT_CAN_480
             return RIVANNA2_MPPT_COMMANDS_480_ID;
         }
 
-    } MPPT_CAN_480;
+    } mppt_can_480_temperatures;
 
 
 

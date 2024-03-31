@@ -13,7 +13,8 @@
 		"string_view": "cpp",
 		"vector": "cpp",
 		"mstd_atomic": "cpp",
-		"mstd_iterator": "cpp"
+		"mstd_iterator": "cpp",
+		"cassert": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }
