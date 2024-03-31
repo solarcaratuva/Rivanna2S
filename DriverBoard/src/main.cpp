@@ -17,6 +17,9 @@
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
 #define UPDATE_SPEED 5
+#define MIN_SPEED 0
+#define MAX_SPEED 10
+
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
@@ -194,9 +197,9 @@ int main() {
         to_motor.cruise_control_en = cruiseControlSwitch;
         if(increaseRisingEdge and decreaseRisingEdge){
         } else if(increaseRisingEdge){
-            to_motor.cruise_control_speed = currentSpeed + UPDATE_SPEED; 
+            to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
         } else if(decreaseRisingEdge){
-            to_motor.cruise_control_speed = currentSpeed - UPDATE_SPEED;
+            to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
         }
 
         to_motor.motor_on = true;
