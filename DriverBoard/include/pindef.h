@@ -9,6 +9,7 @@
 #define CRUISE_INC PB_13
 #define CRUISE_DEC PB_12
 
+
 #define LEFT_TURN_IN PA_9
 #define RIGHT_TURN_IN PA_10
 #define HAZARDS_IN PB_15
@@ -20,6 +21,7 @@
 #define LEFT_TURN_OUT PA_2
 #define RIGHT_TURN_OUT PA_1
 #define BRAKE_LIGHTS_OUT PA_4
+
 #define DRL_OUT PA_0
 #define BMS_STROBE_OUT PA_3
 
