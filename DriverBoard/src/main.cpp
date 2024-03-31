@@ -39,8 +39,6 @@ Thread motor_thread;
 
 
 
-
-
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
