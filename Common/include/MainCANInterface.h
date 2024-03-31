@@ -40,6 +40,10 @@ class MainCANInterface : public CANInterface {
     virtual void handle(BPSError *can_struct) {}
     virtual void handle(BPSCellVoltage *can_struct) {}
     virtual void handle(BPSCellTemperature *can_struct) {}
+    virtual void handle(MPPT180VoltageAndCurrent *can_struct) {}
+    virtual void handle(MPPT280VoltageAndPower  *can_struct) {}
+    virtual void handle (MPPT480Temperatures *can_struct) {}
+    
 
   private:
     void message_handler() override;

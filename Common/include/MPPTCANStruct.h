@@ -28,7 +28,7 @@ typedef struct mppt_can_180_currIn_voltIn
             return RIVANNA2_MPPT_COMMANDS_180_ID;
         }
 
-    } mppt_can_180_curr_and_volt_in;
+    } mppt_can_180_currIn_voltIn;
 
 typedef struct mppt_can_280_voltOut_powerIn
     : CANStruct,
