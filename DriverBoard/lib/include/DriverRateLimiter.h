@@ -1,8 +1,8 @@
-#include <mutex>
-#include <sstream>
+#pragma once
+
 #include <mbed.h>
 #include <chrono>
-
+#include <thread>
 
 // Reimplementation of message handler
 class TokenBucket {
