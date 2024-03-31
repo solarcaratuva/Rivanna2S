@@ -6,7 +6,7 @@
 #ifndef MPPT_CAN_INTERFACE_H
 #define MPPT_CAN_INTERFACE_H
 
-typedef struct MPPT_CAN_INTERFACE_H
+typedef struct MPPT_CAN_180
     : CANStruct,
     rivanna2_mppt_commands_180_t {
 
@@ -28,9 +28,9 @@ typedef struct MPPT_CAN_INTERFACE_H
             return RIVANNA2_MPPT_COMMANDS_180_ID;
         }
 
-    } MPPT_CAN_INTERFACE_H;
+    } MPPT_CAN_180;
 
-typedef struct MPPT_CAN_INTERFACE_H
+typedef struct MPPT_CAN_280
     : CANStruct,
     rivanna2_mppt_commands_280_t {
 
@@ -52,7 +52,7 @@ typedef struct MPPT_CAN_INTERFACE_H
             return RIVANNA2_MPPT_COMMANDS_280_ID;
         }
 
-    } MPPT_CAN_INTERFACE_H;
+    } MPPT_CAN_280;
 
 
 
