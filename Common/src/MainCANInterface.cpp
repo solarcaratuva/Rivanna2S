@@ -132,6 +132,21 @@ void MainCANInterface::message_handler() {
                 BPSCellTemperature can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
+            } else if (message.id == RIVANNA2_MPPT_COMMANDS_180_ID){
+                send_to_pi(&can_struct);
+                mppt_can_180_curr_and_volt_in can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == RIVANNA2_MPPT_COMMANDS_280_ID){
+                send_to_pi(&can_struct);
+                mppt_can_280_voltOut_powerIn can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
+            } else if (message.id == RIVANNA2_MPPT_COMMANDS_480_ID){
+                send_to_pi(&can_struct);
+                mppt_can_480_temperatures can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
             }
         }
     }
