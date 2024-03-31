@@ -9,6 +9,7 @@
 
 #define LOG_LEVEL          LOG_DEBUG
 #define MAIN_LOOP_PERIOD   1s
+#define MOTOR_LOOP_PERIOD  10ms
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
 #define IDLE_PERIOD        100ms
@@ -34,6 +35,9 @@ bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
+Thread motor_thread;
+
+
 
 
 
@@ -57,6 +61,8 @@ DigitalIn cruiseDecrease(CRUISE_DEC);
 AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
+
+ECUMotorCommands to_motor;
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -111,6 +117,7 @@ void read_inputs() {
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+  
     speedIncrease = cruiseIncrease.read();
     speedDecrase = cruiseDecrease.read();
 }
@@ -139,27 +146,9 @@ void signalFlashHandler() {
     }
 }
 
-
-int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
-
-    
-
-    signalFlashThread.start(signalFlashHandler);
-
-    drl = PIN_ON;
-
-    while (true) {
-        log_debug("Main thread loop");
-
-        
-
-        read_inputs();
-        bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
-        bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
-        ECUMotorCommands to_motor;
-
+//Moved motor control from main loop (1s) to it's own loop (10ms)
+void motor_message_handler(){
+    while(true){
         uint16_t pedalValue = readThrottle();
         uint16_t regenValue;    
         uint16_t throttleValue;
@@ -182,18 +171,13 @@ int main() {
         }
 
         to_motor.throttle = throttleValue;
-
-        //This is if we handle on db side, rn handled on motor side
-        // if(cruiseControlSwitch) {
-        //     to_motor.throttle = throttleValue; //use CC value from Karthik's
-        // } 
         
-        to_motor.regen = regenValue;
-
-        to_motor.forward_en = true;
-        to_motor.reverse_en = false; 
-        currentSpeed = to_motor.cruise_control_speed;
-
+        bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
+        bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
+      
+        prevSpeedIncrease = speedIncrease;
+        prevSpeedDecrease = speedDecrease;
+      
         to_motor.cruise_control_en = cruiseControlSwitch;
         if(increaseRisingEdge and decreaseRisingEdge){
         } else if(increaseRisingEdge){
@@ -201,12 +185,34 @@ int main() {
         } else if(decreaseRisingEdge){
             to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
         }
+        
+        to_motor.regen = regenValue;
+
+        to_motor.forward_en = true;
+        to_motor.reverse_en = false; 
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
-        
-        prevSpeedIncrease = speedIncrease;
-        prevSpeedDecrease = speedDecrease;
+        to_motor.log(LOG_DEBUG);
+
+        ThisThread::sleep_for(MOTOR_LOOP_PERIOD);
+    }
+
+}
+
+int main() {
+    log_set_level(LOG_LEVEL);
+    log_debug("Start main()");
+    
+    motor_thread.start(motor_message_handler);
+    signalFlashThread.start(signalFlashHandler);
+
+    drl = PIN_ON;
+
+    while (true) {
+        log_debug("Main thread loop");
+
+        read_inputs();
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
@@ -216,6 +222,7 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0; 
     RPM = can_struct->motor_rpm; 
 }
+
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
