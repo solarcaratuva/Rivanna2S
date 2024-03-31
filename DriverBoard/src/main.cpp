@@ -7,7 +7,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL          LOG_INFO
+#define LOG_LEVEL          LOG_DEBUG
 #define MAIN_LOOP_PERIOD   1s
 #define ERROR_CHECK_PERIOD 100ms
 #define FLASH_PERIOD       500ms
@@ -16,16 +16,19 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
+#define UPDATE_SPEED 5
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
+const bool PIN_ON = false;
+const bool PIN_OFF = true;
+
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
-bool reverseEnabled = false;
 bool strobeEnabled = false;
 Thread signalFlashThread;
 
@@ -34,7 +37,7 @@ Thread signalFlashThread;
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
-DigitalOut dro(DRO_OUT);
+DigitalOut drl(DRL_OUT);
 DigitalOut bms_strobe(BMS_STROBE_OUT);
 
 DigitalIn brakeLightsSwitch(MECHANICAL_BRAKE_IN);
@@ -42,14 +45,13 @@ DigitalIn leftTurnSwitch(LEFT_TURN_IN);
 DigitalIn rightTurnSwitch(RIGHT_TURN_IN);
 DigitalIn hazardsSwitch(HAZARDS_IN);
 DigitalIn regenSwitch(REGEN_IN);
-DigitalIn reverseSwitch(REVERSE_IN);
 
 //TODO: add pins for cruise control
 DigitalIn cruiseControlSwitch(CRUISE_ENABLED);
 DigitalIn cruiseIncrease(CRUISE_INC);
 DigitalIn cruiseDecrease(CRUISE_DEC);
 
-AnalogIn throttle(THROTTLE, 5.0f);
+AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
@@ -60,14 +62,12 @@ const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 int RPM = 0;
 
-
-/*
-A lot of the outputs are active low. However, this might be confusing to read.
-*/
-const bool ACTIVELOW_ON = false;
-const bool ACTIVELOW_OFF = true;
-
 bool flashHazardsState = false;
+bool prevSpeedIncrease = false;
+bool prevSpeedDecrease = false;
+bool speedIncrease = false;
+bool speedDecrease = false;
+uint16_t currentSpeed = 0;
 
 uint16_t readThrottle() {
     float adjusted_throttle_input =
@@ -92,14 +92,13 @@ void read_inputs() {
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
-    reverseEnabled = reverseSwitch.read();
 
-    if(cruiseControlSwitch) {
-        log_debug("cruiseControlSwitch pressed");
-    }
-    cruiseControlSwitch ? log_debug("CC switch pressed") : log_debug("CC switch not pressed");
-    cruiseIncrease ? log_debug("CC increase switch pressed") : log_debug("CC increase switch not pressed");
-    cruiseDecrease ? log_debug("CC decrease switch pressed") : log_debug("CC decrease switch not pressed");
+    // if(cruiseControlSwitch) {
+    //     log_debug("cruiseControlSwitch pressed");
+    // }
+    // cruiseControlSwitch ? log_debug("CC switch pressed") : log_debug("CC switch not pressed");
+    // cruiseIncrease ? log_debug("CC increase switch pressed") : log_debug("CC increase switch not pressed");
+    // cruiseDecrease ? log_debug("CC decrease switch pressed") : log_debug("CC decrease switch not pressed");
     
     //log_debug(cruiseControlSwitch);
     // log_debug(cruiseDecrease);
@@ -107,30 +106,31 @@ void read_inputs() {
     // log_debug(regenEnabled);
     // log_debug(flashLSignal);
     // log_debug(flashRSignal);
-    // log_debug(reverseEnabled);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+    speedIncrease = cruiseIncrease.read();
+    speedDecrase = cruiseDecrease.read();
 }
 
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
         if (brakeLightsEnabled) {
-            rightTurnSignal = true;
-            leftTurnSignal = true;
+            rightTurnSignal = PIN_ON;
+            leftTurnSignal = PIN_ON;
         } else if (flashHazardsState) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
-            rightTurnSignal = false;
+            rightTurnSignal = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
             rightTurnSignal = !rightTurnSignal;
         } else {
-            leftTurnSignal = false;
-            rightTurnSignal = false;
+            leftTurnSignal = PIN_OFF;
+            rightTurnSignal = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -145,7 +145,7 @@ int main() {
 
     signalFlashThread.start(signalFlashHandler);
 
-    dro = ACTIVELOW_ON;
+    drl = PIN_ON;
 
     while (true) {
         log_debug("Main thread loop");
@@ -153,7 +153,8 @@ int main() {
         
 
         read_inputs();
-
+        bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
+        bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
         ECUMotorCommands to_motor;
 
         uint16_t pedalValue = readThrottle();
@@ -186,14 +187,23 @@ int main() {
         
         to_motor.regen = regenValue;
 
-        to_motor.forward_en = !reverseEnabled;
-        to_motor.reverse_en = reverseEnabled; 
+        to_motor.forward_en = true;
+        to_motor.reverse_en = false; 
+        currentSpeed = to_motor.cruise_control_speed;
 
         to_motor.cruise_control_en = cruiseControlSwitch;
-        to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
+        if(increaseRisingEdge and decreaseRisingEdge){
+        } else if(increaseRisingEdge){
+            to_motor.cruise_control_speed = currentSpeed + UPDATE_SPEED; 
+        } else if(decreaseRisingEdge){
+            to_motor.cruise_control_speed = currentSpeed - UPDATE_SPEED;
+        }
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
+        
+        prevSpeedIncrease = speedIncrease;
+        prevSpeedDecrease = speedDecrease;
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
