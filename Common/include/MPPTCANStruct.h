@@ -54,6 +54,30 @@ typedef struct MPPT_CAN_280
 
     } MPPT_CAN_280;
 
+typedef struct MPPT_CAN_480
+    : CANStruct,
+    rivanna2_mppt_commands_480_t {
+
+        void serialize(CANMessage *message) {
+            rivanna2_mppt_commands_280_pack(
+                message->data, this,
+                RIVANNA2_MPPT_COMMANDS_480_LENGTH);
+            message->len = RIVANNA2_MPPT_COMMANDS_480_LENGTH;
+        }
+
+        void deserialize(CANMessage *message) {
+            rivanna2_mppt_commands_480_pack(
+            this, message->data,
+            RIVANNA2_MPPT_COMMANDS_480_LENGTH);
+        }   
+
+        uint32_t get_message_ID() {
+            //should be 280 for this MPPT
+            return RIVANNA2_MPPT_COMMANDS_480_ID;
+        }
+
+    } MPPT_CAN_480;
+
 
 
 

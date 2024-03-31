@@ -49,5 +49,9 @@ int rivanna2_mppt_commands_280_pack(
     const struct rivanna2_mppt_commands_280_t *src_p,
     size_t size);
     
+int rivanna2_mppt_commands_480_pack(
+    uint8_t *dst_p,
+    const struct rivanna2_mppt_commands_480_t *src_p,
+    size_t size);
 
     
