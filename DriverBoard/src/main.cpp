@@ -17,6 +17,10 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
+#define UPDATE_SPEED 5
+#define MIN_SPEED 0
+#define MAX_SPEED 10
+
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
 //                                            MAIN_CAN_STBY);
@@ -66,6 +70,11 @@ const bool LOG_BPS_CELL_TEMPERATURE = false;
 int RPM = 0;
 
 bool flashHazardsState = false;
+bool prevSpeedIncrease = false;
+bool prevSpeedDecrease = false;
+bool speedIncrease = false;
+bool speedDecrease = false;
+uint16_t currentSpeed = 0;
 
 uint16_t readThrottle() {
     float adjusted_throttle_input =
@@ -106,6 +115,9 @@ void read_inputs() {
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+  
+    speedIncrease = cruiseIncrease.read();
+    speedDecrase = cruiseDecrease.read();
 }
 
 void signalFlashHandler() {
@@ -157,19 +169,25 @@ void motor_message_handler(){
         }
 
         to_motor.throttle = throttleValue;
-
-        //This is if we handle on db side, rn handled on motor side
-        // if(cruiseControlSwitch) {
-        //     to_motor.throttle = throttleValue; //use CC value from Karthik's
-        // } 
+        
+        bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
+        bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
+      
+        prevSpeedIncrease = speedIncrease;
+        prevSpeedDecrease = speedDecrease;
+      
+        to_motor.cruise_control_en = cruiseControlSwitch;
+        if(increaseRisingEdge and decreaseRisingEdge){
+        } else if(increaseRisingEdge){
+            to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
+        } else if(decreaseRisingEdge){
+            to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+        }
         
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;
         to_motor.reverse_en = false; 
-
-        to_motor.cruise_control_en = cruiseControlSwitch;
-        to_motor.cruise_control_speed = 0; //replace with speed form Karthik's algorithm
 
         to_motor.motor_on = true;
         vehicle_can_interface.send(&to_motor);
@@ -202,6 +220,7 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0; 
     RPM = can_struct->motor_rpm; 
 }
+
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
