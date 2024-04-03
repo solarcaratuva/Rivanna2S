@@ -26,8 +26,8 @@
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
-const bool PIN_ON = false;
-const bool PIN_OFF = true;
+const bool PIN_ON = true;
+const bool PIN_OFF = false;
 
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
