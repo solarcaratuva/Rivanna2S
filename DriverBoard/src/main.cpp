@@ -7,7 +7,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL          LOG_DEBUG
+#define LOG_LEVEL          LOG_ERROR
 #define MAIN_LOOP_PERIOD   1s
 #define MOTOR_LOOP_PERIOD  10ms
 #define ERROR_CHECK_PERIOD 100ms
@@ -117,7 +117,7 @@ void read_inputs() {
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
   
     speedIncrease = cruiseIncrease.read();
-    speedDecrase = cruiseDecrease.read();
+    speedDecrease = cruiseDecrease.read();
 }
 
 void signalFlashHandler() {
@@ -164,9 +164,15 @@ void motor_message_handler(){
                 regenValue = 0;
             }
         } else {
-            throttleValue = pedalValue;
+            if(pedalValue <= 50) {
+                throttleValue = 0;
+            } else {
+                throttleValue = pedalValue;
+            }
             regenValue = 0;
         }
+
+        log_error("throttle: %d, regen: %d, pedal: %d", throttleValue, regenValue, pedalValue);
 
         to_motor.throttle = throttleValue;
         

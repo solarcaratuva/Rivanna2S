@@ -123,15 +123,15 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     
 
     bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
-    if(cruiseControlEnabled) {
-         // do a calculation to send throttle
-          // double send = calculate(suggestedSpeed, ___);
-          // motor_interface.sendThrottle(send); 
-        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
-        motor_interface.sendThrottle(current);
-    } else {
+    // if(cruiseControlEnabled) {
+    //      // do a calculation to send throttle
+    //       // double send = calculate(suggestedSpeed, ___);
+    //       // motor_interface.sendThrottle(send); 
+    //     uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+    //     motor_interface.sendThrottle(current);
+    // } else {
         motor_interface.sendThrottle(can_struct->throttle);
-    }
+    // }
     
     motor_interface.sendRegen(can_struct->regen);
 
