@@ -88,7 +88,7 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 0, 0, 0);
+    init(256,0, 0.2, 0.2, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
@@ -123,15 +123,15 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     
 
     bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
-    // if(cruiseControlEnabled) {
-    //      // do a calculation to send throttle
-    //       // double send = calculate(suggestedSpeed, ___);
-    //       // motor_interface.sendThrottle(send); 
-    //     uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
-    //     motor_interface.sendThrottle(current);
-    // } else {
+    if(cruiseControlEnabled) {
+         // do a calculation to send throttle
+          // double send = calculate(suggestedSpeed, ___);
+          // motor_interface.sendThrottle(send); 
+        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        motor_interface.sendThrottle(current);
+    } else {
         motor_interface.sendThrottle(can_struct->throttle);
-    // }
+    }
     
     motor_interface.sendRegen(can_struct->regen);
 
