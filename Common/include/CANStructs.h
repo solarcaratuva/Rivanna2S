@@ -6,5 +6,6 @@
 #include "MotorControllerCANStructs.h"
 #include "PowerAuxCANStructs.h"
 #include "SolarCANStructs.h"
+#include "MPPTCANStruct.h"
 
 #endif

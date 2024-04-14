@@ -6,6 +6,7 @@ add_library(Common-lib
     src/log.cpp
     src/MainCANInterface.cpp
     src/Printing.cpp
+    src/dbc/structs/mppt.c
 )
 
 target_include_directories(Common-lib PRIVATE include/dbc/structs)

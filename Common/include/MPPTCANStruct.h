@@ -6,79 +6,58 @@
 #ifndef MPPT_CAN_INTERFACE_H
 #define MPPT_CAN_INTERFACE_H
 
-typedef struct mppt_can_180_currIn_voltIn
+typedef struct MPPT180VoltageAndCurrent
     : CANStruct,
-    rivanna2_mppt_commands_180_t {
-
-        void serialize(CANMessage *message) {
-            rivanna2_mppt_commands_180_pack(
-                message->data, this,
-                RIVANNA2_MPPT_COMMANDS_180_LENGTH);
-            message->len = RIVANNA2_MPPT_COMMANDS_180_LENGTH;
-        }
+    rivanna2_mppt_commands_180_t { 
 
         void deserialize(CANMessage *message) {
-            rivanna2_mppt_commands_180_pack(
+        rivanna2_mppt_commands_180_unpack(
             this, message->data,
             RIVANNA2_MPPT_COMMANDS_180_LENGTH);
-        }   
+        }
 
         uint32_t get_message_ID() {
-            //should be 180 for this MPPT?? or should i make one for all of them
             return RIVANNA2_MPPT_COMMANDS_180_ID;
         }
 
-    } mppt_can_180_currIn_voltIn;
+    } MPPT180VoltageAndCurrent;
 
-typedef struct mppt_can_280_voltOut_powerIn
+
+
+typedef struct MPPT280VoltageAndPower
     : CANStruct,
     rivanna2_mppt_commands_280_t {
 
-        void serialize(CANMessage *message) {
-            rivanna2_mppt_commands_280_pack(
-                message->data, this,
-                RIVANNA2_MPPT_COMMANDS_280_LENGTH);
-            message->len = RIVANNA2_MPPT_COMMANDS_280_LENGTH;
-        }
-
         void deserialize(CANMessage *message) {
-            rivanna2_mppt_commands_280_pack(
+        rivanna2_mppt_commands_280_unpack(
             this, message->data,
             RIVANNA2_MPPT_COMMANDS_280_LENGTH);
-        }   
-
+        }
+       
         uint32_t get_message_ID() {
-            //should be 280 for this MPPT
             return RIVANNA2_MPPT_COMMANDS_280_ID;
         }
 
-    } mppt_can_280_voltOut_powerIn;
+    } MPPT280VoltageAndPower;
 
-typedef struct mppt_can_480_temperatures
+
+
+
+typedef struct MPPT480Temperatures
     : CANStruct,
     rivanna2_mppt_commands_480_t {
 
-        void serialize(CANMessage *message) {
-            rivanna2_mppt_commands_280_pack(
-                message->data, this,
-                RIVANNA2_MPPT_COMMANDS_480_LENGTH);
-            message->len = RIVANNA2_MPPT_COMMANDS_480_LENGTH;
-        }
-
         void deserialize(CANMessage *message) {
-            rivanna2_mppt_commands_480_pack(
+        rivanna2_mppt_commands_480_unpack(
             this, message->data,
             RIVANNA2_MPPT_COMMANDS_480_LENGTH);
-        }   
+        }  
 
         uint32_t get_message_ID() {
-            //should be 280 for this MPPT
             return RIVANNA2_MPPT_COMMANDS_480_ID;
         }
 
-    } mppt_can_480_temperatures;
-
-
+    } MPPT480Temperatures;
 
 
 

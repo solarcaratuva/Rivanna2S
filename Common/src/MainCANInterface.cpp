@@ -133,18 +133,18 @@ void MainCANInterface::message_handler() {
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == RIVANNA2_MPPT_COMMANDS_180_ID){
-                send_to_pi(&can_struct);
-                mppt_can_180_curr_and_volt_in can_struct;
+                // send_to_pi(&can_struct);
+                MPPT180VoltageAndCurrent can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == RIVANNA2_MPPT_COMMANDS_280_ID){
-                send_to_pi(&can_struct);
-                mppt_can_280_voltOut_powerIn can_struct;
+                // send_to_pi(&can_struct);
+                MPPT280VoltageAndPower can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             } else if (message.id == RIVANNA2_MPPT_COMMANDS_480_ID){
-                send_to_pi(&can_struct);
-                mppt_can_480_temperatures can_struct;
+                // send_to_pi(&can_struct);
+                MPPT480Temperatures can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
             }

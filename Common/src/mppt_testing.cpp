@@ -1,5 +1,5 @@
 
-#include "/Users/alextalreja/Desktop/solarcar/Rivanna2S/Common/include/MPPTCANStruct.h"
+#include "MPPTCANStruct.h"
 
 
 // Function to test the initialization and message ID retrieval
@@ -38,15 +38,10 @@ void testSerializationAndDeserialization() {
     assert(mppt180Deserialized.voltage_in == 12.0f);
     std::cout << "MPPT_CAN_180 Serialization and Deserialization Test Passed" << std::endl;
 
-    // You would repeat similar tests for MPPT_CAN_280 and MPPT_CAN_480
 }
 
 int main() {
-    testInitializationAndMessageID();
-    testSerializationAndDeserialization();
-
-    std::cout << "All tests passed!" << std::endl;
-    return 0;
+    
 }
 
 

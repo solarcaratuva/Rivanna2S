@@ -15,7 +15,7 @@
 /*
  Data from CAN message in MPPTCANStruct
 */
-struct rivanna2_mppt_commands_180 {
+struct rivanna2_mppt_commands_180_t {
 
     //float, in mA
     float current_in;
@@ -23,9 +23,9 @@ struct rivanna2_mppt_commands_180 {
     //float in V
     float voltage_in;
 
-}
+};
 
-struct rivanna2_mppt_commands_280 {
+struct rivanna2_mppt_commands_280_t {
 
     //float in V
     float voltage_out; 
@@ -33,30 +33,30 @@ struct rivanna2_mppt_commands_280 {
     //float in mW
     float power_in;
 
-}
+};
 
-struct rivanna2_mppt_commands_480 {
+struct rivanna2_mppt_commands_480_t {
 
     //SN16 in 0.01 C
     uint16_t temperature_pcb;
 
     //SN16 in 0.01 C
     uint16_t temperature_mosfet;
-}
+};
 
-int rivanna2_mppt_commands_180_pack(
-    uint8_t *dst_p,
-    const struct rivanna2_mppt_commands_180_t *src_p,
+int rivanna2_mppt_commands_180_unpack(
+    const struct rivanna2_mppt_commands_180_t *dst_p,
+    uint8_t *src_p,
     size_t size);
 
-int rivanna2_mppt_commands_280_pack(
-    uint8_t *dst_p,
-    const struct rivanna2_mppt_commands_280_t *src_p,
+int rivanna2_mppt_commands_280_unpack(
+    const struct rivanna2_mppt_commands_280_t *dst_p,
+    uint8_t *src_p,
     size_t size);
     
-int rivanna2_mppt_commands_480_pack(
-    uint8_t *dst_p,
-    const struct rivanna2_mppt_commands_480_t *src_p,
+int rivanna2_mppt_commands_480_unpack(
+    const struct rivanna2_mppt_commands_480_t *dst_p,
+    uint8_t *src_p,
     size_t size);
 
     
