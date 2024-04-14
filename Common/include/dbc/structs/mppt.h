@@ -1,3 +1,4 @@
+#pragma once
 #define RIVANNA2_MPPT_COMMANDS_180_LENGTH (8u)
 #define RIVANNA2_MPPT_COMMANDS_280_LENGTH (8u)
 #define RIVANNA2_MPPT_COMMANDS_480_LENGTH (4u)
@@ -11,6 +12,9 @@
 #include <stddef.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  Data from CAN message in MPPTCANStruct
@@ -45,18 +49,21 @@ struct rivanna2_mppt_commands_480_t {
 };
 
 int rivanna2_mppt_commands_180_unpack(
-    const struct rivanna2_mppt_commands_180_t *dst_p,
+    struct rivanna2_mppt_commands_180_t *dst_p,
     uint8_t *src_p,
     size_t size);
 
 int rivanna2_mppt_commands_280_unpack(
-    const struct rivanna2_mppt_commands_280_t *dst_p,
+    struct rivanna2_mppt_commands_280_t *dst_p,
     uint8_t *src_p,
     size_t size);
     
 int rivanna2_mppt_commands_480_unpack(
-    const struct rivanna2_mppt_commands_480_t *dst_p,
+    struct rivanna2_mppt_commands_480_t *dst_p,
     uint8_t *src_p,
     size_t size);
 
-    
+
+#ifdef __cplusplus
+}
+#endif

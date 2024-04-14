@@ -3,6 +3,9 @@
 #include "dbc/structs/mppt.h"
 #include "log.h"
 
+
+
+
 #ifndef MPPT_CAN_INTERFACE_H
 #define MPPT_CAN_INTERFACE_H
 
@@ -58,7 +61,6 @@ typedef struct MPPT480Temperatures
         }
 
     } MPPT480Temperatures;
-
 
 
 #endif

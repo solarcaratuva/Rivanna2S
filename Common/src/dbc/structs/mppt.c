@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "mppt.h"
-#include "MPPTCANStruct.h"
+// #include "MPPTCANStruct.h"
 
 #ifndef EINVAL
 #    define EINVAL 22
@@ -9,7 +9,7 @@
 
 
 int rivanna2_mppt_commands_180_unpack(
-    const struct rivanna2_mppt_commands_180_t *dst_p,
+    struct rivanna2_mppt_commands_180_t *dst_p,
     uint8_t *src_p,
     size_t size)
 {
@@ -19,14 +19,14 @@ int rivanna2_mppt_commands_180_unpack(
 
     memset(dst_p, 0, sizeof(struct rivanna2_mppt_commands_180_t));
 
-    memcpy(&dst_p->current_in, src_p, 4);
-    memcpy(&dst_p->voltage_in, src_p + 4, 4);
+    memcpy((void*) &dst_p->current_in, src_p, 4);
+    memcpy((void*) &dst_p->voltage_in, src_p + 4, 4);
 
     return (0);
 }
 
 int rivanna2_mppt_commands_280_unpack(
-    const struct rivanna2_mppt_commands_280_t *dst_p,
+    struct rivanna2_mppt_commands_280_t *dst_p,
     uint8_t *src_p,
     size_t size)
 {
@@ -36,21 +36,21 @@ int rivanna2_mppt_commands_280_unpack(
 
     memset(dst_p, 0, sizeof(struct rivanna2_mppt_commands_280_t));
 
-    memcpy(&dst_p->voltage_out, src_p, 4);
-    memcpy(&dst_p->power_in, src_p + 4, 4);
+    memcpy((void*) &dst_p->voltage_out, src_p, 4);
+    memcpy((void*) &dst_p->power_in, src_p + 4, 4);
 
     return (0);
 }
 
 int rivanna2_mppt_commands_480_unpack(
-    const struct rivanna2_mppt_commands_480_t *dst_p,
+    struct rivanna2_mppt_commands_480_t *dst_p,
     uint8_t *src_p,
     size_t size)
 {
     memset(dst_p, 0, sizeof(struct rivanna2_mppt_commands_480_t));
 
-    memcpy(&dst_p->temperature_pcb, src_p, 2);
-    memcpy(&dst_p->temperature_mosfet, src_p + 2, 2);
+    memcpy((void*) &dst_p->temperature_pcb, src_p, 2);
+    memcpy((void*) &dst_p->temperature_mosfet, src_p + 2, 2);
 
     return (0);
 }
