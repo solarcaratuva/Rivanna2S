@@ -193,7 +193,7 @@ void motor_message_handler(){
         to_motor.cruise_control_en = cruiseControlEnabled;
 
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
-            double curr = (double)((rpm * 3.1415926535 * 16 * 60)/(63360));
+            double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
             currentSpeed = curr/5*5;
         } else{
             if(increaseRisingEdge and decreaseRisingEdge){
@@ -204,7 +204,7 @@ void motor_message_handler(){
             }
         }
         prevCruiseControlEnabled = cruiseControlEnabled;
-        
+        currentSpeed =  to_motor.cruise_control_speed;
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;
