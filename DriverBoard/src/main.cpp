@@ -39,6 +39,8 @@ Thread motor_thread;
 
 
 
+
+
 DigitalOut brake_lights(BRAKE_LIGHTS_OUT);
 DigitalOut leftTurnSignal(LEFT_TURN_OUT);
 DigitalOut rightTurnSignal(RIGHT_TURN_OUT);
@@ -72,6 +74,9 @@ int RPM = 0;
 bool flashHazardsState = false;
 bool prevSpeedIncrease = false;
 bool prevSpeedDecrease = false;
+bool cruiseControlEnabled = false;
+bool prevCruiseControlEnabled = false;
+bool prevCruiseControlSwitch = false;
 bool speedIncrease = false;
 bool speedDecrease = false;
 uint16_t currentSpeed = 0;
@@ -171,25 +176,40 @@ void motor_message_handler(){
             }
             regenValue = 0;
         }
-
-        log_error("throttle: %d, regen: %d, pedal: %d", throttleValue, regenValue, pedalValue);
-
         to_motor.throttle = throttleValue;
-        
+
+        bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
+        bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlSwitch;
+        if(brakeLightsEnabled || throttleValue == 0){
+            cruiseControlEnabled = false;
+        } else if(cruiseControlRisingEdge){
+            cruiseControlEnabled = true;
+        } else if(cruiseControlFallingEdge){
+            cruiseControlEnabled = false;
+        }
+        prevCruiseControlSwitch = cruiseControlSwitch;
+            
         bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
         bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
       
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
       
-        to_motor.cruise_control_en = cruiseControlSwitch;
-        if(increaseRisingEdge and decreaseRisingEdge){
-        } else if(increaseRisingEdge){
-            to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
-        } else if(decreaseRisingEdge){
-            to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+        to_motor.cruise_control_en = cruiseControlEnabled;
+    
+        if(cruiseControlEnabled and !prevCruiseControlEnabled){
+            double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
+            currentSpeed = curr/5*5;
+        } else{
+            if(increaseRisingEdge and decreaseRisingEdge){
+            } else if(increaseRisingEdge){
+                to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
+            } else if(decreaseRisingEdge){
+                to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+            }
         }
-        
+        prevCruiseControlEnabled = cruiseControlEnabled;
+        currentSpeed =  to_motor.cruise_control_speed;
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;

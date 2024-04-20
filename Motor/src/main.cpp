@@ -88,7 +88,7 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 0.2, 0.2, 0);
+    init(256,0, 1, 1, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
@@ -127,7 +127,7 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
          // do a calculation to send throttle
           // double send = calculate(suggestedSpeed, ___);
           // motor_interface.sendThrottle(send); 
-        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         motor_interface.sendThrottle(current);
     } else {
         motor_interface.sendThrottle(can_struct->throttle);
