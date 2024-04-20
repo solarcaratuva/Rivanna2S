@@ -74,6 +74,8 @@ int RPM = 0;
 bool flashHazardsState = false;
 bool prevSpeedIncrease = false;
 bool prevSpeedDecrease = false;
+bool cruiseControlEnabled = false;
+bool prevCruiseControlEnabled = false;
 bool speedIncrease = false;
 bool speedDecrease = false;
 uint16_t currentSpeed = 0;
@@ -117,9 +119,8 @@ void read_inputs() {
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
-  
     speedIncrease = cruiseIncrease.read();
-    speedDecrase = cruiseDecrease.read();
+    speedDecrease = cruiseDecrease.read();
 }
 
 void signalFlashHandler() {
@@ -169,16 +170,30 @@ void motor_message_handler(){
             throttleValue = pedalValue;
             regenValue = 0;
         }
-
         to_motor.throttle = throttleValue;
-        
+
+        bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlEnabled;
+        bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlEnabled;
+        if(brakeLightsEnabled || throttleValue == 0){
+            cruiseControlEnabled = false;
+        } else if(cruiseControlRisingEdge){
+            cruiseControlEnabled = true;
+        } else if(cruiseControlFallingEdge){
+            cruiseControlEnabled = false;
+        }
+        prevCruiseControlEnabled = cruiseControlEnabled;
+            
         bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
         bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
       
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
       
-        to_motor.cruise_control_en = cruiseControlSwitch;
+        to_motor.cruise_control_en = cruiseControlEnabled;
+        double curr = (double)((rpm * 3.1415926535 * 16 * 60)/(63360));
+        if(cruiseControlRisingEdge){
+            currentSpeed = curr/5*5;
+        } 
         if(increaseRisingEdge and decreaseRisingEdge){
         } else if(increaseRisingEdge){
             to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 

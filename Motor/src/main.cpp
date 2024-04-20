@@ -127,7 +127,7 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
          // do a calculation to send throttle
           // double send = calculate(suggestedSpeed, ___);
           // motor_interface.sendThrottle(send); 
-        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         motor_interface.sendThrottle(current);
     } else {
         motor_interface.sendThrottle(can_struct->throttle);
