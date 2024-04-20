@@ -7,7 +7,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL          LOG_DEBUG
+#define LOG_LEVEL          LOG_ERROR
 #define MAIN_LOOP_PERIOD   1s
 #define MOTOR_LOOP_PERIOD  10ms
 #define ERROR_CHECK_PERIOD 100ms
@@ -26,8 +26,8 @@
 //                                            MAIN_CAN_STBY);
 // BPSCANInterface bps_can_interface(BMS_CAN1_RX, BMS_CAN1_TX, BMS_CAN1_STBY);
 
-const bool PIN_ON = false;
-const bool PIN_OFF = true;
+const bool PIN_ON = true;
+const bool PIN_OFF = false;
 
 bool flashHazards, flashLSignal, flashRSignal = false;
 bool brakeLightsEnabled = false;
@@ -120,6 +120,7 @@ void read_inputs() {
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
     brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+  
     speedIncrease = cruiseIncrease.read();
     speedDecrease = cruiseDecrease.read();
 }
@@ -168,7 +169,11 @@ void motor_message_handler(){
                 regenValue = 0;
             }
         } else {
-            throttleValue = pedalValue;
+            if(pedalValue <= 50) {
+                throttleValue = 0;
+            } else {
+                throttleValue = pedalValue;
+            }
             regenValue = 0;
         }
         to_motor.throttle = throttleValue;

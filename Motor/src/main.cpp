@@ -88,7 +88,7 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 0, 0, 0);
+    init(256,0, 0.2, 0.2, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
