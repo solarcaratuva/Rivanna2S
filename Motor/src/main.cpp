@@ -41,7 +41,7 @@ void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 uint16_t rpm, current, currentSpeed;
 bool enabled;
 double _pre_error, _integral;
-const float maxAcceleration = 60;
+uint16_t maxAcceleration = 128;
 uint16_t previousThrottle = 0;
 
 // set values for initalization
@@ -81,7 +81,7 @@ uint16_t calculate(uint16_t setpoint, uint16_t pv){
 }
 
 uint16_t calculateThrottle(uint16_t setpoint){
-    uint16_t deltaThrottle = setpoint - previousThrottle;
+    int16_t deltaThrottle = setpoint - previousThrottle;
 
     if(deltaThrottle > maxAcceleration){
         setpoint = previousThrottle + maxAcceleration;
@@ -143,8 +143,8 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
         motor_interface.sendThrottle(current);
         log_error("current %d, setpoint %d, currentspeed %d", current, can_struct->cruise_control_speed, currentSpeed);
     } else {
-        uint16_t current = calculateThrottle(currentSpeed);
-        log_error("Current: %d CurrentSpeed: %d", current, currentSpeed);
+        uint16_t current = calculateThrottle(can_struct->throttle);
+        log_error("Bryson current: %d throttle: %d", current, can_struct->throttle);
         motor_interface.sendThrottle(current);
     }
     

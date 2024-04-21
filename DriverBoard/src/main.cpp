@@ -17,9 +17,9 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
-#define UPDATE_SPEED 5
+#define UPDATE_SPEED 
 #define MIN_SPEED 0
-#define MAX_SPEED 10
+#define MAX_SPEED 35
 
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
@@ -193,7 +193,7 @@ void motor_message_handler(){
             log_error("brake switch on");
         }
 
-        if(brakeLightsEnabled){
+        if(brakeLightsSwitch || regenEnabled){
             cruiseControlEnabled = false;
             log_error("brake or throttle nonzero");
         } else if(cruiseControlRisingEdge){
@@ -222,6 +222,7 @@ void motor_message_handler(){
             double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
             currentSpeed = curr/5*5;
             log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
+            to_motor.cruise_control_speed = currentSpeed;
         } else{
             if(increaseRisingEdge and decreaseRisingEdge){
             } else if(increaseRisingEdge){
