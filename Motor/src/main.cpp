@@ -41,6 +41,8 @@ void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 uint16_t rpm, current, currentSpeed;
 bool enabled;
 double _pre_error, _integral;
+const float maxAcceleration = 60;
+uint16_t previousThrottle = 0;
 
 // set values for initalization
 double dt, _max, _min, Kp, Kd, Ki;
@@ -78,6 +80,16 @@ uint16_t calculate(uint16_t setpoint, uint16_t pv){
     return output;
 }
 
+uint16_t calculateThrottle(uint16_t setpoint){
+    uint16_t deltaThrottle = setpoint - previousThrottle;
+
+    if(deltaThrottle > maxAcceleration){
+        setpoint = previousThrottle + maxAcceleration;
+    }
+    previousThrottle = setpoint;
+
+    return setpoint;
+}
 
 
 int main() {
@@ -131,7 +143,9 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
         motor_interface.sendThrottle(current);
         log_error("current %d, setpoint %d, currentspeed %d", current, can_struct->cruise_control_speed, currentSpeed);
     } else {
-        motor_interface.sendThrottle(can_struct->throttle);
+        uint16_t current = calculateThrottle(currentSpeed);
+        log_error("Current: %d CurrentSpeed: %d", current, currentSpeed);
+        motor_interface.sendThrottle(current);
     }
     
     motor_interface.sendRegen(can_struct->regen);
