@@ -180,8 +180,22 @@ void motor_message_handler(){
 
         bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
         bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlSwitch;
-        if(brakeLightsEnabled || throttleValue == 0){
+
+        if(cruiseControlRisingEdge) {
+            log_error("cc switch rising edge");
+        }
+
+        if(cruiseControlFallingEdge) {
+            log_error("cc switch falling edge");
+        }
+
+        if(brakeLightsSwitch) {
+            log_error("brake switch on");
+        }
+
+        if(brakeLightsEnabled){
             cruiseControlEnabled = false;
+            log_error("brake or throttle nonzero");
         } else if(cruiseControlRisingEdge){
             cruiseControlEnabled = true;
         } else if(cruiseControlFallingEdge){
@@ -191,6 +205,13 @@ void motor_message_handler(){
             
         bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
         bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
+
+        if(increaseRisingEdge) {
+            log_error("increase rising");
+        }
+        if(decreaseRisingEdge) {
+            log_error("decrease rising");
+        }
       
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
@@ -200,16 +221,19 @@ void motor_message_handler(){
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
             double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
             currentSpeed = curr/5*5;
+            log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
         } else{
             if(increaseRisingEdge and decreaseRisingEdge){
             } else if(increaseRisingEdge){
-                to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
+                to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED);
+                currentSpeed = to_motor.cruise_control_speed;
             } else if(decreaseRisingEdge){
                 to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+                currentSpeed = to_motor.cruise_control_speed;
             }
         }
         prevCruiseControlEnabled = cruiseControlEnabled;
-        currentSpeed =  to_motor.cruise_control_speed;
+        log_error("cc speed: %d, cc en %d", currentSpeed, cruiseControlEnabled);
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;

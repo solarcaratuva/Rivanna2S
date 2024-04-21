@@ -8,7 +8,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL        LOG_DEBUG
+#define LOG_LEVEL        LOG_ERROR
 #define MAIN_LOOP_PERIOD 100ms
 
 EventQueue event_queue(32 * EVENTS_EVENT_SIZE);
@@ -88,7 +88,7 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 1, 1, 0);
+    init(256,0, 10, 10, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
@@ -129,6 +129,7 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
           // motor_interface.sendThrottle(send); 
         uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         motor_interface.sendThrottle(current);
+        log_error("current %d, setpoint %d, currentspeed %d", current, can_struct->cruise_control_speed, currentSpeed);
     } else {
         motor_interface.sendThrottle(can_struct->throttle);
     }
