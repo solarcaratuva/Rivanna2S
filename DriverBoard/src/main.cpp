@@ -17,7 +17,7 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
-#define UPDATE_SPEED 
+#define UPDATE_SPEED 7
 #define MIN_SPEED 0
 #define MAX_SPEED 35
 
@@ -79,6 +79,7 @@ bool prevCruiseControlEnabled = false;
 bool prevCruiseControlSwitch = false;
 bool speedIncrease = false;
 bool speedDecrease = false;
+bool bms_error = false;
 uint16_t currentSpeed = 0;
 
 uint16_t readThrottle() {
@@ -181,21 +182,21 @@ void motor_message_handler(){
         bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
         bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlSwitch;
 
-        if(cruiseControlRisingEdge) {
-            log_error("cc switch rising edge");
-        }
+        // if(cruiseControlRisingEdge) {
+        //     log_error("cc switch rising edge");
+        // }
 
-        if(cruiseControlFallingEdge) {
-            log_error("cc switch falling edge");
-        }
+        // if(cruiseControlFallingEdge) {
+        //     log_error("cc switch falling edge");
+        // }
 
-        if(brakeLightsSwitch) {
-            log_error("brake switch on");
-        }
+        // if(brakeLightsSwitch) {
+        //     log_error("brake switch on");
+        // }
 
         if(brakeLightsSwitch || regenEnabled){
             cruiseControlEnabled = false;
-            log_error("brake or throttle nonzero");
+            // log_error("brake or throttle nonzero");
         } else if(cruiseControlRisingEdge){
             cruiseControlEnabled = true;
         } else if(cruiseControlFallingEdge){
@@ -206,12 +207,12 @@ void motor_message_handler(){
         bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
         bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
 
-        if(increaseRisingEdge) {
-            log_error("increase rising");
-        }
-        if(decreaseRisingEdge) {
-            log_error("decrease rising");
-        }
+        // if(increaseRisingEdge) {
+        //     log_error("increase rising");
+        // }
+        // if(decreaseRisingEdge) {
+        //     log_error("decrease rising");
+        // }
       
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
@@ -221,7 +222,7 @@ void motor_message_handler(){
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
             double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
             currentSpeed = curr/5*5;
-            log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
+            // log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
             to_motor.cruise_control_speed = currentSpeed;
         } else{
             if(increaseRisingEdge and decreaseRisingEdge){
@@ -234,7 +235,7 @@ void motor_message_handler(){
             }
         }
         prevCruiseControlEnabled = cruiseControlEnabled;
-        log_error("cc speed: %d, cc en %d", currentSpeed, cruiseControlEnabled);
+        // log_error("cc speed: %d, cc en %d, pedal throttle: %d", currentSpeed, cruiseControlEnabled, throttleValue);
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;
@@ -273,5 +274,7 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 }
 
 void DriverCANInterface::handle(BPSError *can_struct) {
-    bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    bms_strobe = bms_error;
+    log_error("BMS Error: %d", bms_error);
 }
