@@ -10,7 +10,7 @@
 #define CRUISE_DEC PB_12
 
 #define PI_UART_TX         PB_4
-#define PI_UART_RX         PB_5
+#define PI_UART_RX         NC
 
 #define LEFT_TURN_IN PA_9
 #define RIGHT_TURN_IN PA_10
@@ -63,7 +63,7 @@
 #define BMS_STROBE_OUT NC
 
 #define PI_UART_TX         PB_4
-#define PI_UART_RX         PB_5
+#define PI_UART_RX         NC
 
 #endif
 

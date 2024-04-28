@@ -210,21 +210,30 @@ void motor_message_handler(){
 }
 
 int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
-    
-    motor_thread.start(motor_message_handler);
-    signalFlashThread.start(signalFlashHandler);
+    while (true){
+        log_debug("HEREHREHREHRE");
+        char data_to_pi = 105;
+        auto address = &data_to_pi;
 
-    drl = PIN_ON;
-
-    while (true) {
-        log_debug("Main thread loop");
-
-        read_inputs();
-
-        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        static BufferedSerial raspberry_pi(PI_UART_TX, PI_UART_RX, 9600);
+        raspberry_pi.write(address, sizeof(data_to_pi));
     }
+
+    // log_set_level(LOG_LEVEL);
+    // log_debug("Start main()");
+    
+    // motor_thread.start(motor_message_handler);
+    // signalFlashThread.start(signalFlashHandler);
+
+    // drl = PIN_ON;
+
+    // while (true) {
+    //     log_debug("Main thread loop");
+
+    //     read_inputs();
+
+    //     ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+    // }
 }
 
 
