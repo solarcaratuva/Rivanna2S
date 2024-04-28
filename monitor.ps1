@@ -1,0 +1,1 @@
+pio.exe device monitor -b 921600
