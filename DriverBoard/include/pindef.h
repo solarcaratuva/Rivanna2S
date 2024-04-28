@@ -62,8 +62,8 @@
 #define DRO_OUT NC
 #define BMS_STROBE_OUT NC
 
-#define PI_UART_TX         PA_2
-#define PI_UART_RX         PA_3
+#define PI_UART_TX         PB_4
+#define PI_UART_RX         PB_5
 
 #endif
 
