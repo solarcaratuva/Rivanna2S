@@ -62,20 +62,22 @@ const bool LOG_BPS_ERROR = false;
 const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 
-TokenBucket ecu_motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+
+//Sends one message every second
+TokenBucket ecu_motor_token_bucket(1, 1000); //(number of tokens, seconds)
 TokenBucket ecu_power_aux_token_bucket(1, 1000);
 TokenBucket solar_current_token_bucket(1, 1000);
 TokenBucket solar_voltage_token_bucket(1, 1000);
-TokenBucket solar_temp_token_bucket(1, 2000);
-TokenBucket solar_photo_token_bucket(1, 2000);
+TokenBucket solar_temp_token_bucket(1, 1000);
+TokenBucket solar_photo_token_bucket(1, 1000);
 TokenBucket motor_controller_power_token_bucket(1, 1000);
 TokenBucket motor_controller_drive_token_bucket(1,1000);
-TokenBucket bps_pack_token_bucket(1,2000);
-TokenBucket bps_cell_voltage_token_bucket(1,2000);
-TokenBucket bps_cell_temp_token_bucket(1,2000);
-TokenBucket bps_error_token_bucket(1,500);
-TokenBucket power_aux_error_token_bucket(1,500);
-TokenBucket motor_controller_error_token_bucket(1,500);
+TokenBucket bps_pack_token_bucket(1,1000);
+TokenBucket bps_cell_voltage_token_bucket(1,1000);
+TokenBucket bps_cell_temp_token_bucket(1,1000);
+TokenBucket bps_error_token_bucket(1,1000);
+TokenBucket power_aux_error_token_bucket(1,1000);
+TokenBucket motor_controller_error_token_bucket(1,1000);
 
 CANMessage ecu_power_aux_message;
 CANMessage solar_current_message;
@@ -208,21 +210,30 @@ void motor_message_handler(){
 }
 
 int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
-    
-    motor_thread.start(motor_message_handler);
-    signalFlashThread.start(signalFlashHandler);
+    while (true){
+        log_debug("HEREHREHREHRE");
+        char data_to_pi = 105;
+        auto address = &data_to_pi;
 
-    drl = PIN_ON;
-
-    while (true) {
-        log_debug("Main thread loop");
-
-        read_inputs();
-
-        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+        static BufferedSerial raspberry_pi(PI_UART_TX, PI_UART_RX, 9600);
+        raspberry_pi.write(address, sizeof(data_to_pi));
     }
+
+    // log_set_level(LOG_LEVEL);
+    // log_debug("Start main()");
+    
+    // motor_thread.start(motor_message_handler);
+    // signalFlashThread.start(signalFlashHandler);
+
+    // drl = PIN_ON;
+
+    // while (true) {
+    //     log_debug("Main thread loop");
+
+    //     read_inputs();
+
+    //     ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+    // }
 }
 
 
