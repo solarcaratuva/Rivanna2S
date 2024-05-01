@@ -65,7 +65,7 @@ int low_cell_voltage_threshold = 27500;
 int high_cell_voltage_threshold = 42000;
 uint16_t BPS_Cell_Messages = 0;
 
-CANMessageLimiter ecu_motor_token_bucket(1, 1000); //(number of tokens, milliseconds)
+CANMessageLimiter ecu_motor_token_bucket(1, 1000); //(number to send per unit time, interval between each sent message (ms))
 CANMessageLimiter ecu_power_aux_token_bucket(1, 1000);
 CANMessageLimiter solar_current_token_bucket(1, 1000);
 CANMessageLimiter solar_voltage_token_bucket(1, 1000);
@@ -79,21 +79,6 @@ CANMessageLimiter bps_cell_temp_token_bucket(1,2000);
 CANMessageLimiter bps_error_token_bucket(1,500);
 CANMessageLimiter power_aux_error_token_bucket(1,500);
 CANMessageLimiter motor_controller_error_token_bucket(1,500);
-
-CANMessage ecu_power_aux_message;
-CANMessage solar_current_message;
-CANMessage solar_voltage_message;
-CANMessage solar_temp_message;
-CANMessage solar_photo_message;
-CANMessage motor_controller_power_message;
-CANMessage motor_controller_drive_message;
-CANMessage bps_pack_message;
-CANMessage bps_voltage_message;
-CANMessage bps_temp_message;
-CANMessage bps_error;
-CANMessage power_aux_error;
-CANMessage motor_controller_error;
-CANMessage motor_message;
 
 
 //  ------------------------------------------------------
@@ -248,6 +233,7 @@ int main() {
 }
 
 void BPSCANInterface::handle(BPSPackInformation *can_struct) {
+    CANMessage bps_pack_message;
     charge_relay_status = can_struct->charge_relay_status;
     discharge_relay_status = can_struct->discharge_relay_status;
     //can_struct->log(LOG_INFO);
@@ -260,6 +246,7 @@ void BPSCANInterface::handle(BPSError *can_struct) {
     // Checks critical faults are present and sends ECUPowerAux command to turn on bms strobe
     // ECUPowerAuxCommands headlights field will be high if the message is from battery board the hazards field indicates if BMS strobe is high or not
 
+    CANMessage bps_error;
     bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
     if (bms_strobe) {
         has_faulted = true;
@@ -284,6 +271,8 @@ void BPSCANInterface::handle(BPSError *can_struct) {
 void BPSCANInterface::handle(BPSCellVoltage *can_struct) {
     //cell_voltage_fault = false;
     //can_struct->log(LOG_DEBUG);
+
+    CANMessage bps_voltage_message;
     log_debug("Recieved BPSCellVoltage Frame");
     if (BPS_Cell_Messages < 3) {
         BPS_Cell_Messages++;
@@ -314,65 +303,90 @@ void BPSCANInterface::message_forwarder(CANMessage *message) {
     vehicle_can_interface.send_message(message);
 }
 
-
 void BatteryBoardCANInterface::handle(MotorControllerError *can_struct) {
     //Fixing message that is sent to handler; convert can struct as message using .serialize()
 
+    CANMessage motor_controller_error;
     log_debug("Sending to handler mcerror\n");
     can_struct->serialize(&motor_controller_error);
     motor_controller_error_token_bucket.handle(&motor_controller_error, MotorControllerError_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(ECUPowerAuxCommands *can_struct) {
+
+    CANMessage ecu_power_aux_message;
     log_debug("Sending to handler ecupoweraux\n");
     can_struct->serialize(&ecu_power_aux_message);
     ecu_power_aux_token_bucket.handle(&ecu_power_aux_message, ECUPowerAuxCommands_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(PowerAuxError *can_struct) {
+
+    CANMessage power_aux_error;
     log_debug("Sending to handler powerauxerror\n");
     can_struct->serialize(&power_aux_error);
     power_aux_error_token_bucket.handle(&power_aux_error, PowerAuxError_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(SolarCurrent *can_struct) {
+
+    CANMessage solar_current_message;
     log_debug("Sending to handler solarcurrent\n");
     can_struct->serialize(&solar_current_message);
     solar_current_token_bucket.handle(&solar_current_message, SolarCurrent_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(SolarVoltage *can_struct) {
+
+    CANMessage solar_voltage_message;
     log_debug("Sending to handler solar voltage\n");
     can_struct->serialize(&solar_voltage_message);
     solar_voltage_token_bucket.handle(&solar_voltage_message, SolarVoltage_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(SolarTemp *can_struct) {
+
+    CANMessage solar_temp_message;
     log_debug("Sending to handler solartemp\n");
     can_struct->serialize(&solar_temp_message);
     solar_temp_token_bucket.handle(&solar_temp_message, SolarTemp_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(SolarPhoto *can_struct) {
+
+    CANMessage solar_photo_message;
     log_debug("Sending to handler solarphoto\n");
     can_struct->serialize(&solar_photo_message);
     solar_photo_token_bucket.handle(&solar_photo_message, SolarPhoto_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(MotorControllerPowerStatus *can_struct) {
+
+    CANMessage motor_controller_power_message;
     log_debug("Sending to handler mcpowerstatus\n");
     can_struct->serialize(&motor_controller_power_message);
     motor_controller_power_token_bucket.handle(&motor_controller_power_message, MotorControllerPowerStatus_MESSAGE_ID);
 }
 
 void BatteryBoardCANInterface::handle(MotorControllerDriveStatus *can_struct) {
+
+    CANMessage motor_controller_drive_message;
     log_debug("Sending to handler mcdrivestatus\n");
     can_struct->serialize(&motor_controller_drive_message);
     motor_controller_drive_token_bucket.handle(&motor_controller_drive_message, MotorControllerDriveStatus_MESSAGE_ID);
 }
 
+void BatteryBoardCANInterface::handle(BPSCellTemperature *can_struct) {
+
+    CANMessage bps_temp_message;
+    log_debug("Sending to handler bpscelltemp\n");
+    can_struct->serialize(&bps_temp_message);
+    motor_controller_drive_token_bucket.handle(&bps_temp_message, BPSCellTemperature_MESSAGE_ID);
+}
 
 void BatteryBoardCANInterface::handle(ECUMotorCommands *can_struct) {
+    
+    CANMessage motor_message;
     can_struct->serialize(&motor_message);
     log_debug("Sending to handler ecumotorcommands\n");
     ecu_motor_token_bucket.handle(&motor_message, ECUMotorCommands_MESSAGE_ID);

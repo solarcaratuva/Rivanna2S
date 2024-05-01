@@ -7,12 +7,12 @@
 // Reimplementation of message handler
 class CANMessageLimiter {
 public:
-    int tokens;
-    int time_unit;
-    float bucket;
+    int capacity;
+    int time_unit_ms;
+    float tokens;
     int64_t last_check;
 
-    CANMessageLimiter(int tokens, int time_unit);
+    CANMessageLimiter(int capacity, int time_unit_ms);
 
     // to-do: change int packet
     void handle(CANMessage *message, uint16_t message_id);
