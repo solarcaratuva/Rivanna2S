@@ -1,5 +1,6 @@
 add_library(BatteryBoard-lib
     src/BPSCANInterface.cpp
+    src/CANMessageLimiter.cpp
 )
 
 target_include_directories(BatteryBoard-lib PUBLIC include)

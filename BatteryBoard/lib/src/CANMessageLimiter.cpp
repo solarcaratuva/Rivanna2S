@@ -1,5 +1,6 @@
 #include "CANMessageLimiter.h"
 #include "BPSCANInterface.h"
+#include "BatteryBoardCANInterface.h"
  
 CANMessageLimiter::CANMessageLimiter(int tokens, int time_unit) {
     this->tokens = tokens;
