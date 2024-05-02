@@ -34,6 +34,7 @@ bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
+bool bms_error = false;
 Thread signalFlashThread;
 Thread motor_thread;
 
@@ -124,6 +125,9 @@ void read_inputs() {
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
+        if(bms_error) {
+            bms_strobe = !bms_strobe;
+        }
         if (brakeLightsEnabled) {
             rightTurnSignal = PIN_ON;
             leftTurnSignal = PIN_ON;
@@ -239,5 +243,5 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 }
 
 void DriverCANInterface::handle(BPSError *can_struct) {
-    bms_strobe = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+    bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
