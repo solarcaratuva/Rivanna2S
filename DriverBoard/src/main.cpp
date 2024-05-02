@@ -61,6 +61,7 @@ AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 ECUMotorCommands to_motor;
+ECUPowerAuxCommands power_aux_out;
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -219,6 +220,16 @@ int main() {
         read_inputs();
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+
+        //  hazards, brake_lights, headlights, left_turn_signal,
+        //              right_turn_signal
+        power_aux_out.hazards = flashHazards;
+        power_aux_out.brake_lights = brakeLightsSwitch;
+        power_aux_out.headlights = 0;
+        power_aux_out.left_turn_signal = flashLSignal;
+        power_aux_out.right_turn_signal = flashRSignal;
+
+        vehicle_can_interface.send(&power_aux_out);
     }
 }
 
