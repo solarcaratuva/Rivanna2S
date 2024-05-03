@@ -35,6 +35,8 @@ bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
 bool bms_error = false;
+bool left_on = false;
+bool left_off = true;
 Thread signalFlashThread;
 Thread motor_thread;
 
@@ -71,7 +73,6 @@ const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 int RPM = 0;
 
-bool flashHazardsState = false;
 bool prevSpeedIncrease = false;
 bool prevSpeedDecrease = false;
 bool speedIncrease = false;
@@ -95,9 +96,6 @@ uint16_t readThrottle() {
 
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
-    if(flashHazards) {
-        flashHazardsState = !flashHazardsState;
-    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
@@ -129,21 +127,26 @@ void signalFlashHandler() {
             bms_strobe = !bms_strobe;
         }
         if (brakeLightsEnabled) {
-            rightTurnSignal = PIN_ON;
-            leftTurnSignal = PIN_ON;
-        } else if (flashHazardsState) {
+            rightTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
+            brake_lights = PIN_ON;
+        } else if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
-            rightTurnSignal = !leftTurnSignalState;
+            rightTurnSignal = leftTurnSignalState;
+            brake_lights = PIN_OFF;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
             rightTurnSignal = PIN_OFF;
+            brake_lights = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
             rightTurnSignal = !rightTurnSignal;
+            brake_lights = PIN_OFF;
         } else {
-            leftTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
             rightTurnSignal = PIN_OFF;
+            brake_lights = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
