@@ -34,6 +34,9 @@ bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
+bool bms_error = false;
+bool left_on = false;
+bool left_off = true;
 Thread signalFlashThread;
 Thread motor_thread;
 
@@ -63,6 +66,7 @@ AnalogIn throttle(THROTTLE_VALUE_IN, 5.0f);
 DriverCANInterface vehicle_can_interface(CAN_RX, CAN_TX, CAN_STBY);
 
 ECUMotorCommands to_motor;
+ECUPowerAuxCommands power_aux_out;
 
 const bool LOG_ECU_POWERAUX_COMMANDS = false;
 const bool LOG_BPS_PACK_INFORMATION = true;
@@ -71,7 +75,6 @@ const bool LOG_BPS_CELL_VOLTAGE = false;
 const bool LOG_BPS_CELL_TEMPERATURE = false;
 int RPM = 0;
 
-bool flashHazardsState = false;
 bool prevSpeedIncrease = false;
 bool prevSpeedDecrease = false;
 bool cruiseControlEnabled = false;
@@ -99,9 +102,6 @@ uint16_t readThrottle() {
 
 void read_inputs() {
     flashHazards = hazardsSwitch.read();
-    if(flashHazards) {
-        flashHazardsState = !flashHazardsState;
-    }
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
@@ -129,22 +129,30 @@ void read_inputs() {
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
+        if(bms_error) {
+            bms_strobe = !bms_strobe;
+        }
         if (brakeLightsEnabled) {
-            rightTurnSignal = PIN_ON;
-            leftTurnSignal = PIN_ON;
-        } else if (flashHazardsState) {
+            rightTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
+            brake_lights = PIN_ON;
+        } else if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
-            rightTurnSignal = !leftTurnSignalState;
+            rightTurnSignal = leftTurnSignalState;
+            brake_lights = PIN_OFF;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
             rightTurnSignal = PIN_OFF;
+            brake_lights = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
             rightTurnSignal = !rightTurnSignal;
+            brake_lights = PIN_OFF;
         } else {
-            leftTurnSignal = PIN_OFF;
+            leftTurnSignal = left_off;
             rightTurnSignal = PIN_OFF;
+            brake_lights = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -265,6 +273,16 @@ int main() {
         read_inputs();
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
+
+        //  hazards, brake_lights, headlights, left_turn_signal,
+        //              right_turn_signal
+        power_aux_out.hazards = flashHazards;
+        power_aux_out.brake_lights = brakeLightsSwitch;
+        power_aux_out.headlights = 0;
+        power_aux_out.left_turn_signal = flashLSignal;
+        power_aux_out.right_turn_signal = flashRSignal;
+
+        vehicle_can_interface.send(&power_aux_out);
     }
 }
 
@@ -275,6 +293,4 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
-    bms_strobe = bms_error;
-    log_error("BMS Error: %d", bms_error);
 }
