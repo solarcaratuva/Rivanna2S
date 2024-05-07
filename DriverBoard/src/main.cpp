@@ -17,9 +17,9 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
-#define UPDATE_SPEED 5
+#define UPDATE_SPEED 7
 #define MIN_SPEED 0
-#define MAX_SPEED 10
+#define MAX_SPEED 35
 
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
@@ -39,6 +39,8 @@ bool left_on = false;
 bool left_off = true;
 Thread signalFlashThread;
 Thread motor_thread;
+
+
 
 
 
@@ -75,8 +77,12 @@ int RPM = 0;
 
 bool prevSpeedIncrease = false;
 bool prevSpeedDecrease = false;
+bool cruiseControlEnabled = false;
+bool prevCruiseControlEnabled = false;
+bool prevCruiseControlSwitch = false;
 bool speedIncrease = false;
 bool speedDecrease = false;
+bool bms_error = false;
 uint16_t currentSpeed = 0;
 
 uint16_t readThrottle() {
@@ -179,25 +185,65 @@ void motor_message_handler(){
             }
             regenValue = 0;
         }
-
-        log_error("throttle: %d, regen: %d, pedal: %d", throttleValue, regenValue, pedalValue);
-
         to_motor.throttle = throttleValue;
-        
+
+        bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
+        bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlSwitch;
+
+        // if(cruiseControlRisingEdge) {
+        //     log_error("cc switch rising edge");
+        // }
+
+        // if(cruiseControlFallingEdge) {
+        //     log_error("cc switch falling edge");
+        // }
+
+        // if(brakeLightsSwitch) {
+        //     log_error("brake switch on");
+        // }
+
+        if(brakeLightsSwitch || regenEnabled){
+            cruiseControlEnabled = false;
+            // log_error("brake or throttle nonzero");
+        } else if(cruiseControlRisingEdge){
+            cruiseControlEnabled = true;
+        } else if(cruiseControlFallingEdge){
+            cruiseControlEnabled = false;
+        }
+        prevCruiseControlSwitch = cruiseControlSwitch;
+            
         bool increaseRisingEdge = speedIncrease and !prevSpeedIncrease;
         bool decreaseRisingEdge = speedDecrease and !prevSpeedDecrease;
+
+        // if(increaseRisingEdge) {
+        //     log_error("increase rising");
+        // }
+        // if(decreaseRisingEdge) {
+        //     log_error("decrease rising");
+        // }
       
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
       
-        to_motor.cruise_control_en = cruiseControlSwitch;
-        if(increaseRisingEdge and decreaseRisingEdge){
-        } else if(increaseRisingEdge){
-            to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED); 
-        } else if(decreaseRisingEdge){
-            to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+        to_motor.cruise_control_en = cruiseControlEnabled;
+    
+        if(cruiseControlEnabled and !prevCruiseControlEnabled){
+            double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
+            currentSpeed = curr/5*5;
+            // log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
+            to_motor.cruise_control_speed = currentSpeed;
+        } else{
+            if(increaseRisingEdge and decreaseRisingEdge){
+            } else if(increaseRisingEdge){
+                to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED);
+                currentSpeed = to_motor.cruise_control_speed;
+            } else if(decreaseRisingEdge){
+                to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
+                currentSpeed = to_motor.cruise_control_speed;
+            }
         }
-        
+        prevCruiseControlEnabled = cruiseControlEnabled;
+        // log_error("cc speed: %d, cc en %d, pedal throttle: %d", currentSpeed, cruiseControlEnabled, throttleValue);
         to_motor.regen = regenValue;
 
         to_motor.forward_en = true;

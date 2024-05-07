@@ -8,7 +8,7 @@
 #include <mbed.h>
 #include <rtos.h>
 
-#define LOG_LEVEL        LOG_DEBUG
+#define LOG_LEVEL        LOG_ERROR
 #define MAIN_LOOP_PERIOD 100ms
 
 EventQueue event_queue(32 * EVENTS_EVENT_SIZE);
@@ -41,16 +41,18 @@ void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 uint16_t rpm, current, currentSpeed;
 bool enabled;
 double _pre_error, _integral;
+uint16_t maxAcceleration = 128;
+uint16_t previousThrottle = 0;
 
 // set values for initalization
 double dt, _max, _min, Kp, Kd, Ki;
 
-void init(uint16_t __max, uint16_t __min, double _Kp, double _Kd, double _Ki){
+void init(uint16_t __max, uint16_t __min, double _Kp, double _Ki, double _Kd){
     _max = __max;
     _min = __min;
     Kp = _Kp;
-    Kd = _Kd;
     Ki = _Ki;
+    Kd = _Kd;
 }
 
 uint16_t calculate(uint16_t setpoint, uint16_t pv){
@@ -78,6 +80,16 @@ uint16_t calculate(uint16_t setpoint, uint16_t pv){
     return output;
 }
 
+uint16_t calculateThrottle(uint16_t setpoint){
+    int16_t deltaThrottle = setpoint - previousThrottle;
+
+    if(deltaThrottle > maxAcceleration){
+        setpoint = previousThrottle + maxAcceleration;
+    }
+    previousThrottle = setpoint;
+
+    return setpoint;
+}
 
 
 int main() {
@@ -88,11 +100,11 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 0.2, 0.2, 0);
+    init(256,0, 17, 10, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
-    
+    bool prev_enabled = false;
     while (true) {
         if(!enabled){
             log_debug("Main thread loop");
@@ -100,10 +112,14 @@ int main() {
             motor_controller_can_interface.request_frames(true, true, true);
             ThisThread::sleep_for(MAIN_LOOP_PERIOD);
         } else{
+            if(!prev_enabled) {
+                _integral = 0;
+            }
             log_debug("Cruise Control Loop");
             motor_controller_can_interface.request_frames(true, true, true);
             ThisThread::sleep_for(MAIN_LOOP_PERIOD);
         }
+        prev_enabled = enabled;
     }
 }
 
@@ -127,21 +143,24 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
          // do a calculation to send throttle
           // double send = calculate(suggestedSpeed, ___);
           // motor_interface.sendThrottle(send); 
-        uint16_t current = calculate(currentSpeed, can_struct->cruise_control_speed);
+        uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         motor_interface.sendThrottle(current);
+        // log_error("current %d, setpoint %d, currentspeed %d", current, can_struct->cruise_control_speed, currentSpeed);
     } else {
-        motor_interface.sendThrottle(can_struct->throttle);
+        uint16_t current = calculateThrottle(can_struct->throttle);
+        // log_error("Bryson current: %d throttle: %d", current, can_struct->throttle);
+        motor_interface.sendThrottle(current);
     }
     
     motor_interface.sendRegen(can_struct->regen);
 
-    log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
+    // log_error("R: %d T: %d", can_struct->regen, can_struct->throttle);
 
 }
 
 void MotorControllerCANInterface::handle(
     MotorControllerPowerStatus *can_struct) {
-    can_struct->log(LOG_INFO);
+    can_struct->log(LOG_ERROR);
     rpm = can_struct->motor_rpm;
     current = can_struct->motor_current;
     currentSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
@@ -150,12 +169,12 @@ void MotorControllerCANInterface::handle(
 
 void MotorControllerCANInterface::handle(
     MotorControllerDriveStatus *can_struct) {
-    can_struct->log(LOG_INFO);
+    can_struct->log(LOG_ERROR);
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
-    can_struct->log(LOG_INFO);
+    can_struct->log(LOG_ERROR);
     motor_state_tracker.setMotorControllerError(*can_struct);
 }
 
