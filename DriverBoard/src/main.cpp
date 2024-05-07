@@ -82,7 +82,6 @@ bool prevCruiseControlEnabled = false;
 bool prevCruiseControlSwitch = false;
 bool speedIncrease = false;
 bool speedDecrease = false;
-bool bms_error = false;
 uint16_t currentSpeed = 0;
 
 uint16_t readThrottle() {
