@@ -80,7 +80,7 @@ uint16_t calculate(uint16_t setpoint, uint16_t pv){
     return output;
 }
 
-uint16_t calculateThrottle(uint16_t setpoint){
+uint16_t calculateDampenedThrottle(uint16_t setpoint){
     int16_t deltaThrottle = setpoint - previousThrottle;
 
     if(deltaThrottle > maxAcceleration){
@@ -140,16 +140,12 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
 
     bool cruiseControlEnabled = (can_struct->cruise_control_en); //added to toggle using throttle vs. cc value
     if(cruiseControlEnabled) {
-         // do a calculation to send throttle
-          // double send = calculate(suggestedSpeed, ___);
-          // motor_interface.sendThrottle(send); 
         uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
-        motor_interface.sendThrottle(current);
-        // log_error("current %d, setpoint %d, currentspeed %d", current, can_struct->cruise_control_speed, currentSpeed);
+        uint16_t dampened_current = calculateDampenedThrottle(current);
+        motor_interface.sendThrottle(dampened_current);
     } else {
-        uint16_t current = calculateThrottle(can_struct->throttle);
-        // log_error("Bryson current: %d throttle: %d", current, can_struct->throttle);
-        motor_interface.sendThrottle(current);
+        uint16_t dampened_current = calculateDampenedThrottle(can_struct->throttle);
+        motor_interface.sendThrottle(dampened_current);
     }
     
     motor_interface.sendRegen(can_struct->regen);
