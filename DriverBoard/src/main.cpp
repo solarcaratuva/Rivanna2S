@@ -35,6 +35,7 @@ bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
 bool bms_error = false;
+bool contact_12_error = false;
 bool left_on = false;
 bool left_off = true;
 Thread signalFlashThread;
@@ -128,7 +129,7 @@ void read_inputs() {
 void signalFlashHandler() {
     while (true) {
         // Note: Casting from a `DigitalOut` to a `bool` gives the most recently written value
-        if(bms_error) {
+        if(bms_error || contact_12_error) {
             bms_strobe = !bms_strobe;
         }
         if (brakeLightsEnabled) {
@@ -292,4 +293,10 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
 
 void DriverCANInterface::handle(BPSError *can_struct) {
     bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
+}
+
+void DriverCANInterface::handle(ECUPowerAuxCommands *can_struct) {
+    if(can_struct->headlights && can_struct->hazards) {
+        contact_12_error = true;
+    }
 }

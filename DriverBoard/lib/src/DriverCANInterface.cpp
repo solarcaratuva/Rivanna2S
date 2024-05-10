@@ -52,6 +52,10 @@ void DriverCANInterface::message_handler() {
                 MotorControllerPowerStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
+            } else if(message.id == ECUPowerAuxCommands_MESSAGE_ID) {
+                ECUPowerAuxCommands can_struct;
+                can_struct.deserialize(&message);
+                handle(&can_struct);
             }
         }
     }
