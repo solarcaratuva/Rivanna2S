@@ -39,7 +39,6 @@ void handle_ECUMotorCommands_timeout() { motor_interface.sendThrottle(0x000); }
 
 // RPM + Current
 uint16_t rpm, current, currentSpeed;
-bool enabled;
 double _pre_error, _integral;
 uint16_t maxAcceleration = 128;
 uint16_t previousThrottle = 0;
@@ -104,22 +103,9 @@ int main() {
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
-    bool prev_enabled = false;
     while (true) {
-        if(!enabled){
-            log_debug("Main thread loop");
-            // request frames from the motor controller
-            motor_controller_can_interface.request_frames(true, true, true);
-            ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-        } else{
-            if(!prev_enabled) {
-                _integral = 0;
-            }
-            log_debug("Cruise Control Loop");
-            motor_controller_can_interface.request_frames(true, true, true);
-            ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-        }
-        prev_enabled = enabled;
+        motor_controller_can_interface.request_frames(true, true, true);
+        ThisThread::sleep_for(MAIN_LOOP_PERIOD);
     }
 }
 
@@ -142,8 +128,10 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     if(cruiseControlEnabled) {
         uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         uint16_t dampened_current = calculateDampenedThrottle(current);
+        log_error("Sent cc current: %d, cc speed: %d, dampened: %d, integral: %d/1000", current, can_struct->cruise_control_speed, dampened_current, (int)(_integral*1000));
         motor_interface.sendThrottle(dampened_current);
     } else {
+        _integral = 0;
         uint16_t dampened_current = calculateDampenedThrottle(can_struct->throttle);
         motor_interface.sendThrottle(dampened_current);
     }
@@ -156,7 +144,7 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
 
 void MotorControllerCANInterface::handle(
     MotorControllerPowerStatus *can_struct) {
-    can_struct->log(LOG_ERROR);
+    // can_struct->log(LOG_ERROR);
     rpm = can_struct->motor_rpm;
     current = can_struct->motor_current;
     currentSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
@@ -165,12 +153,12 @@ void MotorControllerCANInterface::handle(
 
 void MotorControllerCANInterface::handle(
     MotorControllerDriveStatus *can_struct) {
-    can_struct->log(LOG_ERROR);
+    // can_struct->log(LOG_ERROR);
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
 }
 
 void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
-    can_struct->log(LOG_ERROR);
+    // can_struct->log(LOG_ERROR);
     motor_state_tracker.setMotorControllerError(*can_struct);
 }
 
