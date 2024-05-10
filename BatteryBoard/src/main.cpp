@@ -204,15 +204,18 @@ int main() {
         if (!contact12V_has_gone_high && contact12_input.read()) {
             contact12V_has_gone_high = true;
         }
+        if(!has_faulted) {
+            has_faulted = contact12V_has_gone_high && !(contact12_input.read());
+        }
         ECUPowerAuxCommands x;
         x.headlights = 1; 
         x.hazards = bms_strobe;
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
-        if (cell_voltage_fault || has_faulted || (contact12V_has_gone_high && !(contact12_input.read()))) {
+        if (cell_voltage_fault || has_faulted) {
         x.hazards = 1;
         }
         vehicle_can_interface.send(&x);
-        if (contact12V_has_gone_high && !contact12_input.read()) {
+        if (has_faulted) {
             mppt_precharge.write(0);
             discharge_enable.write(0);
             motor_precharge.write(0);
