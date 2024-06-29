@@ -42,6 +42,7 @@ uint16_t rpm, current, currentSpeed;
 double _pre_error, _integral;
 uint16_t maxAcceleration = 128;
 uint16_t previousThrottle = 0;
+bool half_throttle = false;
 
 // set values for initalization
 double dt, _max, _min, Kp, Kd, Ki;
@@ -128,11 +129,17 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
     if(cruiseControlEnabled) {
         uint16_t current = calculate(can_struct->cruise_control_speed, currentSpeed);
         uint16_t dampened_current = calculateDampenedThrottle(current);
-        log_error("Sent cc current: %d, cc speed: %d, dampened: %d, integral: %d/1000", current, can_struct->cruise_control_speed, dampened_current, (int)(_integral*1000));
+        //log_error("Sent cc current: %d, cc speed: %d, dampened: %d, integral: %d/1000", current, can_struct->cruise_control_speed, dampened_current, (int)(_integral*1000));
+        if(half_throttle) {
+          dampened_current >>= 1;
+        }
         motor_interface.sendThrottle(dampened_current);
     } else {
         _integral = 0;
         uint16_t dampened_current = calculateDampenedThrottle(can_struct->throttle);
+        if(half_throttle) {
+          dampened_current >>= 1;
+        }
         motor_interface.sendThrottle(dampened_current);
     }
     
@@ -154,6 +161,9 @@ void MotorControllerCANInterface::handle(
 void MotorControllerCANInterface::handle(
     MotorControllerDriveStatus *can_struct) {
     // can_struct->log(LOG_ERROR);
+    // log_error("fwd rev: %d", can_struct->motor_status);
+    // log_error("pwr (1), eco (0): %d", can_struct->power_mode);
+    half_throttle = can_struct->motor_status == 2 && can_struct->power_mode == 1;
     motor_state_tracker.setMotorControllerDriveStatus(*can_struct);
 }
 
