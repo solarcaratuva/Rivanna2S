@@ -6,7 +6,7 @@ import sys
 def get_correct_port() -> str:
     ports = serial.tools.list_ports.comports()
     for port in ports:
-        if "ST-Link" in port.description:
+        if "stlink" in port.description.lower() or "st-link" in port.description.lower():
             return port.device
     return None
 
