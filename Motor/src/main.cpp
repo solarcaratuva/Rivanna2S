@@ -176,6 +176,7 @@ void MotorControllerCANInterface::handle(MotorControllerError *can_struct) {
 void MotorControllerCANInterface::message_forwarder(CANMessage *message) {
     // message_forwarder is called whenever the MotorControllerCANInterface gets a CAN message
     // this forwards the message to the vehicle can bus
+    //log_error("forwarded id: %d", message->id);
     vehicle_can_interface.send_message(message);
 }
 
