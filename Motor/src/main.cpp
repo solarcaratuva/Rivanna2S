@@ -154,7 +154,7 @@ void MotorControllerCANInterface::handle(
     // can_struct->log(LOG_ERROR);
     rpm = can_struct->motor_rpm;
     current = can_struct->motor_current;
-    currentSpeed = (rpm * 3.1415926535 * 16 * 60)/(63360); 
+    currentSpeed = (uint16_t)((double)rpm * (double)0.0596); 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
 }
 
