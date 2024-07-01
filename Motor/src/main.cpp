@@ -100,7 +100,7 @@ int main() {
     ECUMotorCommands_timeout.attach(
     event_queue.event(handle_ECUMotorCommands_timeout), 100ms);
 
-    init(256,0, 17, 10, 0);
+    init(256,0, 8, 0.1, 0);
     _pre_error = 0;
     _integral = 0;
     dt =  0.1;
@@ -133,6 +133,7 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
         if(half_throttle) {
           dampened_current >>= 1;
         }
+        log_error("target speed: %d, current speed: %d, sent to motor: %d", can_struct->cruise_control_speed, currentSpeed, dampened_current);
         motor_interface.sendThrottle(dampened_current);
     } else {
         _integral = 0;
@@ -156,6 +157,7 @@ void MotorControllerCANInterface::handle(
     current = can_struct->motor_current;
     currentSpeed = (uint16_t)((double)rpm * (double)0.0596); 
     motor_state_tracker.setMotorControllerPowerStatus(*can_struct);
+    //log_error("fet temp: %d", can_struct->fet_temp);
 }
 
 void MotorControllerCANInterface::handle(

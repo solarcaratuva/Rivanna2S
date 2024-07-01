@@ -17,9 +17,9 @@
 #define THROTTLE_LOW_VOLTAGE_BUFFER  0.20
 #define THROTTLE_HIGH_VOLTAGE        3.08
 #define THROTTLE_HIGH_VOLTAGE_BUFFER 0.10
-#define UPDATE_SPEED 7
+#define UPDATE_SPEED 5
 #define MIN_SPEED 0
-#define MAX_SPEED 35
+#define MAX_SPEED 50
 
 
 // PowerAuxCANInterface vehicle_can_interface(MAIN_CAN_RX, MAIN_CAN_TX,
@@ -228,8 +228,9 @@ void motor_message_handler(){
         to_motor.cruise_control_en = cruiseControlEnabled;
     
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
-            double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
-            currentSpeed = curr/5*5;
+            //double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
+            //currentSpeed = curr/5*5;
+            currentSpeed  = ((double) RPM) * ((double) 0.0596);
             // log_error("cc rising, set speed to %d, RPM=%d", currentSpeed, RPM);
             to_motor.cruise_control_speed = currentSpeed;
         } else{
