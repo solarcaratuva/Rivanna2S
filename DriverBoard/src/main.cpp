@@ -101,6 +101,8 @@ uint16_t readThrottle() {
 }
 
 void read_inputs() {
+  // left turn signal = all turn signals
+  // right turn signal = all lights
     flashHazards = hazardsSwitch.read();
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
@@ -260,30 +262,36 @@ void motor_message_handler(){
 }
 
 int main() {
-    log_set_level(LOG_LEVEL);
-    log_debug("Start main()");
+    // log_set_level(LOG_LEVEL);
+    // log_debug("Start main()");
     
-    motor_thread.start(motor_message_handler);
-    signalFlashThread.start(signalFlashHandler);
+    // motor_thread.start(motor_message_handler);
+    // signalFlashThread.start(signalFlashHandler);
 
-    drl = PIN_ON;
+    // drl = PIN_ON;
 
     while (true) {
-        log_debug("Main thread loop");
+        // log_debug("Main thread loop");
 
-        read_inputs();
+        // read_inputs();
+
+        brake_lights = rightTurnSwitch;
+        leftTurnSignal = leftTurnSwitch || rightTurnSwitch;
+        rightTurnSignal = leftTurnSwitch || rightTurnSwitch;
+        drl = rightTurnSwitch;
+        bms_strobe = rightTurnSwitch;
 
         ThisThread::sleep_for(MAIN_LOOP_PERIOD);
 
         //  hazards, brake_lights, headlights, left_turn_signal,
         //              right_turn_signal
-        power_aux_out.hazards = flashHazards;
-        power_aux_out.brake_lights = brakeLightsSwitch;
-        power_aux_out.headlights = 0;
-        power_aux_out.left_turn_signal = flashLSignal;
-        power_aux_out.right_turn_signal = flashRSignal;
+        // power_aux_out.hazards = flashHazards;
+        // power_aux_out.brake_lights = brakeLightsSwitch;
+        // power_aux_out.headlights = 0;
+        // power_aux_out.left_turn_signal = flashLSignal;
+        // power_aux_out.right_turn_signal = flashRSignal;
 
-        vehicle_can_interface.send(&power_aux_out);
+        // vehicle_can_interface.send(&power_aux_out);
     }
 }
 
