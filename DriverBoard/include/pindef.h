@@ -7,12 +7,12 @@
 
 #define CRUISE_ENABLED PB_14
 #define CRUISE_INC PB_13
-#define CRUISE_DEC PB_12
+#define CRUISE_DEC PA_7
 
 
 #define LEFT_TURN_IN PA_10
 #define RIGHT_TURN_IN PA_9
-#define HAZARDS_IN PB_15
+#define HAZARDS_IN PB_0
 #define MECHANICAL_BRAKE_IN PA_8
 #define REGEN_IN PB_11
 #define THROTTLE_VALUE_IN PB_2
