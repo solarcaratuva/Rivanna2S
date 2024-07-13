@@ -37,8 +37,6 @@ bool brakeLightsEnabled = false;
 bool regenActive = false;
 bool bms_error = false;
 bool contact_12_error = false;
-bool left_on = false;
-bool left_off = true;
 Thread signalFlashThread;
 Thread motor_thread;
 
@@ -146,11 +144,11 @@ void signalFlashHandler() {
             rightTurnSignal = PIN_OFF;
             brake_lights = PIN_OFF;
         } else if (flashRSignal) {
-            leftTurnSignal = left_off;
+            leftTurnSignal = PIN_OFF;
             rightTurnSignal = !rightTurnSignal;
             brake_lights = PIN_OFF;
         } else {
-            leftTurnSignal = left_off;
+            leftTurnSignal = PIN_OFF;
             rightTurnSignal = PIN_OFF;
             brake_lights = PIN_OFF;
         }
