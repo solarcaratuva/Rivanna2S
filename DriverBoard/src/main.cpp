@@ -33,6 +33,8 @@ bool flashHazards, flashLSignal, flashRSignal = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
+bool brakeLightsEnabled = false;
+bool regenActive = false;
 bool bms_error = false;
 bool contact_12_error = false;
 bool left_on = false;
@@ -104,6 +106,7 @@ void read_inputs() {
     flashLSignal = leftTurnSwitch.read();
     flashRSignal = rightTurnSwitch.read();
     regenEnabled = regenSwitch.read();
+    brakeLightsEnabled = brakeLightsSwitch.read();
 
     // if(cruiseControlSwitch) {
     //     log_debug("cruiseControlSwitch pressed");
@@ -119,7 +122,6 @@ void read_inputs() {
     // log_debug(flashLSignal);
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
-    brake_lights = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
   
     speedIncrease = cruiseIncrease.read();
     speedDecrease = cruiseDecrease.read();
@@ -131,7 +133,9 @@ void signalFlashHandler() {
         if(bms_error || contact_12_error) {
             bms_strobe = !bms_strobe;
         }
-        
+
+        brake_lights = brakeLightsEnabled || regenActive;
+
         if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
@@ -181,6 +185,9 @@ void motor_message_handler(){
             }
             regenValue = 0;
         }
+
+        regenActive = regenValue > 0;
+
         to_motor.throttle = throttleValue;
 
         bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
