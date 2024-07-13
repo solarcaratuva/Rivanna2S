@@ -30,7 +30,6 @@ const bool PIN_ON = true;
 const bool PIN_OFF = false;
 
 bool flashHazards, flashLSignal, flashRSignal = false;
-bool brakeLightsEnabled = false;
 bool regenEnabled = false;
 bool rpmPositive = false;
 bool strobeEnabled = false;
@@ -120,7 +119,7 @@ void read_inputs() {
     // log_debug(flashLSignal);
     // log_debug(flashRSignal);
     // log_debug(flashHazards);
-    brakeLightsEnabled = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
+    brake_lights = brakeLightsSwitch || (regenEnabled && RPM > 0); //changed from brake_lights.read()
   
     speedIncrease = cruiseIncrease.read();
     speedDecrease = cruiseDecrease.read();
@@ -132,11 +131,8 @@ void signalFlashHandler() {
         if(bms_error || contact_12_error) {
             bms_strobe = !bms_strobe;
         }
-        if (brakeLightsEnabled) {
-            rightTurnSignal = PIN_OFF;
-            leftTurnSignal = left_off;
-            brake_lights = PIN_ON;
-        } else if (flashHazards) {
+        
+        if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = leftTurnSignalState;
