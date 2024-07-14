@@ -132,25 +132,24 @@ void signalFlashHandler() {
             bms_strobe = !bms_strobe;
         }
 
+        // log_error("brake lights en: %d", brakeLightsEnabled);
+
         brake_lights = brakeLightsEnabled || regenActive;
+        // log_error("wrote brake lights: %d", brake_lights);
 
         if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = leftTurnSignalState;
-            brake_lights = PIN_OFF;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
             rightTurnSignal = PIN_OFF;
-            brake_lights = PIN_OFF;
         } else if (flashRSignal) {
             leftTurnSignal = PIN_OFF;
             rightTurnSignal = !rightTurnSignal;
-            brake_lights = PIN_OFF;
         } else {
             leftTurnSignal = PIN_OFF;
             rightTurnSignal = PIN_OFF;
-            brake_lights = PIN_OFF;
         }
         ThisThread::sleep_for(FLASH_PERIOD);
     }
@@ -292,10 +291,12 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0;
     vehicle_can_interface.send(can_struct);
     //log_error("sent rpm: %d", can_struct->motor_rpm);
-    RPM = can_struct->motor_rpm; 
+    RPM = can_struct->motor_rpm;
+    log_error("motor");
 }
 
 void DriverCANInterface::handle(BPSError *can_struct) {
+    log_error("from bps");
     bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
 
