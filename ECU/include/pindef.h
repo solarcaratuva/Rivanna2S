@@ -34,9 +34,6 @@
 #define BATTERY_CONTACT    PB_11
 #define IGNITION           PB_12
 
-#define PI_UART_TX         PA_2
-#define PI_UART_RX         PA_3
-
 /**********************************/
 /* pin definitions for Unused I/O */
 /**********************************/
