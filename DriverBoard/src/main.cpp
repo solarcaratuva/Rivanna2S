@@ -289,7 +289,6 @@ int main() {
 
 void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0;
-    vehicle_can_interface.send(can_struct);
     //log_error("sent rpm: %d", can_struct->motor_rpm);
     RPM = can_struct->motor_rpm;
     log_error("motor");

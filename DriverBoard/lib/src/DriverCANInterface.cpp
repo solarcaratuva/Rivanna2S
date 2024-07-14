@@ -48,7 +48,7 @@ void DriverCANInterface::message_handler() {
                 BPSError can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
-            } else if (message.id == MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID) {
+            } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID || message.id == MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID) {
                 MotorControllerPowerStatus can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
