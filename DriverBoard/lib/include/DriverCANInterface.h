@@ -14,6 +14,8 @@ class DriverCANInterface : public CANInterface {
     void handle(ECUPowerAuxCommands *can_struct);
     int send(CANStruct *can_struct);
 
+    void send_to_pi(int id, char* data);
+
   private:
     void message_handler() override;
 };

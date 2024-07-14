@@ -17,6 +17,9 @@ int DriverCANInterface::send(CANStruct *can_struct) {
     char message_data[17];
 
     CANInterface::write_CAN_message_data_to_buffer(message_data, &message);
+
+    send_to_pi(message.id, message_data);
+
     if (result == 1) {  
         log_debug("Sent CAN message with ID 0x%03X Length %d Data 0x%s",
                   message.id, message.len, message_data);
@@ -43,6 +46,8 @@ void DriverCANInterface::message_handler() {
 
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);
+            send_to_pi(message.id, message_data);
+
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s ", message.id, message.len, message_data);
             if (message.id == BPSError_MESSAGE_ID) {
                 BPSError can_struct;
@@ -58,5 +63,119 @@ void DriverCANInterface::message_handler() {
                 handle(&can_struct);
             }
         }
+    }
+}
+
+static inline uint16_t unpack_right_shift_u16(
+    uint8_t value,
+    uint8_t shift,
+    uint8_t mask)
+{
+    return (uint16_t)((uint16_t)(value & mask) >> shift);
+}
+
+static inline uint16_t unpack_left_shift_u16(
+    uint8_t value,
+    uint8_t shift,
+    uint8_t mask)
+{
+    return (uint16_t)((uint16_t)(value & mask) << shift);
+}
+
+static inline uint8_t unpack_right_shift_u8(
+    uint8_t value,
+    uint8_t shift,
+    uint8_t mask)
+{
+    return (uint8_t)((uint8_t)(value & mask) >> shift);
+}
+
+static inline uint8_t unpack_left_shift_u8(
+    uint8_t value,
+    uint8_t shift,
+    uint8_t mask)
+{
+    return (uint8_t)((uint8_t)(value & mask) << shift);
+}
+
+int motor_commands_rate_divisor = 30;
+int curr_motor_commands_ct = 0;
+
+void DriverCANInterface::send_to_pi(int id, char* data) {
+  switch(id) {
+    case (1030): {
+      int pack_voltage = ((data[1]<<8) | data[0]);
+      fprintf(stderr, "pack_voltage %d\n", pack_voltage);
+      int16_t pack_current = unpack_right_shift_u16(data[2], 0u, 0xffu);
+      pack_current |= unpack_left_shift_u16(data[3], 8u, 0xffu);
+      fprintf(stderr, "pack_current %d\n", pack_current);
+      // uint8_t byte2 = data[2];
+      // uint8_t byte3 = data[3];
+      // fprintf(stderr, "byte 2: %d, byte 3: %d\n", byte2, byte3);
+      break;
+    }
+    case (805): {
+      int motor_rpm = unpack_right_shift_u16(data[4], 3u, 0xf8u);
+      motor_rpm |= unpack_left_shift_u16(data[5], 5u, 0x7fu);
+      fprintf(stderr, "motor_rpm %d\n", motor_rpm);
+      break;
+    }
+    case(0x08850225): {
+      int motor_rpm = unpack_right_shift_u16(data[4], 3u, 0xf8u);
+      motor_rpm |= unpack_left_shift_u16(data[5], 5u, 0x7fu);
+      fprintf(stderr, "motor_rpm %d\n", motor_rpm);
+      break;
+    }
+    case (1062): {
+      int high_cell_tmp = data[2];
+      fprintf(stderr, "tmp %d\n", high_cell_tmp);
+      break;
+    }
+    case(513): {
+      ++curr_motor_commands_ct;
+      if(curr_motor_commands_ct < motor_commands_rate_divisor) {
+        break;
+      }
+      curr_motor_commands_ct = 0;
+      // int throttle = unpack_right_shift_u16(data[0], 0u, 0xffu);
+      // throttle |= unpack_left_shift_u16(data[1], 8u, 0x01u);
+      // fprintf(stderr, "throttle %d\n", throttle);
+      int regen = unpack_right_shift_u16(data[1], 1u, 0xfeu);
+      regen |= unpack_left_shift_u16(data[2], 7u, 0x03u);
+      fprintf(stderr, "regen %d\n", regen);
+      int cruise_control_speed = unpack_right_shift_u8(data[2], 2u, 0xfcu);
+      cruise_control_speed |= unpack_left_shift_u8(data[3], 6u, 0x03u);
+      fprintf(stderr, "cc_speed %d\n", cruise_control_speed);
+      int cruise_control_en = (data[3]>>2)&1;
+      fprintf(stderr, "cc_en %d\n", cruise_control_en);
+      break;
+    }
+    case(262): {
+      uint32_t bms_out = data[2];
+      bms_out = (bms_out<<8) | data[1];
+      bms_out = (bms_out<<8) | data[0];
+      fprintf(stderr, "bms_fault %d\n", bms_out);
+      break;
+    }
+    case(769): {
+      uint8_t headlights = (data[0]>>2)&1;
+      uint8_t hazards = data[0]&1;
+      if(headlights) {
+        // Sent from battery board
+        // Hazards represent error value
+        fprintf(stderr, "other_error %d\n", hazards);
+        break;
+      }
+      fprintf(stderr, "hazards %d\n", hazards);
+      uint8_t left_turn = (data[0]>>3)&1;
+      fprintf(stderr, "left_turn %d\n", left_turn);
+      uint8_t right_turn = (data[0]>>4)&1;
+      fprintf(stderr, "right_turn %d\n", right_turn);
+      break;
+    }
+    default: {
+      fprintf(stderr, "unknown can msg id: %d\n", id);
+      break;
+    }
     }
 }
