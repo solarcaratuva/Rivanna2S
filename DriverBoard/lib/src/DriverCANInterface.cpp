@@ -18,7 +18,7 @@ int DriverCANInterface::send(CANStruct *can_struct) {
 
     CANInterface::write_CAN_message_data_to_buffer(message_data, &message);
 
-    send_to_pi(message.id, message_data);
+    //send_to_pi(message.id, message_data);
 
     if (result == 1) {  
         log_debug("Sent CAN message with ID 0x%03X Length %d Data 0x%s",
@@ -46,7 +46,7 @@ void DriverCANInterface::message_handler() {
 
             CANInterface::write_CAN_message_data_to_buffer(message_data,
                                                            &message);
-            send_to_pi(message.id, message_data);
+            // send_to_pi(message.id, message_data);
 
             log_debug("Received CAN message with ID 0x%03X Length %d Data 0x%s ", message.id, message.len, message_data);
             if (message.id == BPSError_MESSAGE_ID) {
@@ -56,11 +56,25 @@ void DriverCANInterface::message_handler() {
             } else if (message.id == MotorControllerPowerStatus_MESSAGE_ID || message.id == MotorControllerPowerStatus_AUX_BUS_MESSAGE_ID) {
                 MotorControllerPowerStatus can_struct;
                 can_struct.deserialize(&message);
+                fprintf(stderr, "motor_rpm %d\n", can_struct.motor_rpm);
+                fflush(stderr);
                 handle(&can_struct);
             } else if(message.id == ECUPowerAuxCommands_MESSAGE_ID) {
                 ECUPowerAuxCommands can_struct;
                 can_struct.deserialize(&message);
                 handle(&can_struct);
+            } else if(message.id == BPSPackInformation_MESSAGE_ID) {
+                BPSPackInformation can_struct;
+                can_struct.deserialize(&message);
+                fprintf(stderr, "pack_voltage %d\n", can_struct.pack_voltage);
+                fflush(stderr);
+                fprintf(stderr, "pack_current %d\n", can_struct.pack_current);
+                fflush(stderr);
+            } else if(message.id == BPSCellTemperature_MESSAGE_ID) {
+                BPSCellTemperature can_struct;
+                can_struct.deserialize(&message);
+                fprintf(stderr, "tmp %d\n", can_struct.high_temperature);
+                fflush(stderr);
             }
         }
     }

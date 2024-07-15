@@ -100,10 +100,19 @@ uint16_t readThrottle() {
 }
 
 void read_inputs() {
+    // log_error("read inputs");
     flashHazards = hazardsSwitch.read();
+    fprintf(stderr, "hazards %d\n", flashHazards ? 1 : 0);
+    fflush(stderr);
     flashLSignal = leftTurnSwitch.read();
+    fprintf(stderr, "left_turn %d\n", flashLSignal ? 1 : 0);
+    fflush(stderr);
     flashRSignal = rightTurnSwitch.read();
+    fprintf(stderr, "right_turn %d\n", flashRSignal ? 1 : 0);
+    fflush(stderr);
     regenEnabled = regenSwitch.read();
+    fprintf(stderr, "regen %d\n", regenEnabled ? 1 : 0);
+    fflush(stderr);
     brakeLightsEnabled = brakeLightsSwitch.read();
 
     // if(cruiseControlSwitch) {
@@ -140,7 +149,7 @@ void signalFlashHandler() {
         if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
-            rightTurnSignal = leftTurnSignalState;
+            rightTurnSignal = !leftTurnSignalState;
         } else if (flashLSignal) {
             leftTurnSignal = !leftTurnSignal;
             rightTurnSignal = PIN_OFF;
@@ -226,6 +235,8 @@ void motor_message_handler(){
         prevSpeedDecrease = speedDecrease;
       
         to_motor.cruise_control_en = cruiseControlEnabled;
+        fprintf(stderr, "cc_en %d\n", cruiseControlEnabled);
+        fflush(stderr);
     
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
             //double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
@@ -243,6 +254,8 @@ void motor_message_handler(){
                 currentSpeed = to_motor.cruise_control_speed;
             }
         }
+        fprintf(stderr, "cc_speed %d\n", to_motor.cruise_control_speed);
+        fflush(stderr);
         prevCruiseControlEnabled = cruiseControlEnabled;
         // log_error("cc speed: %d, cc en %d, pedal throttle: %d", currentSpeed, cruiseControlEnabled, throttleValue);
         to_motor.regen = regenValue;
@@ -291,11 +304,11 @@ void DriverCANInterface::handle(MotorControllerPowerStatus *can_struct) {
     // rpmPositive = can_struct->motor_rpm > 0;
     //log_error("sent rpm: %d", can_struct->motor_rpm);
     RPM = can_struct->motor_rpm;
-    log_error("motor");
+    //log_error("motor");
 }
 
 void DriverCANInterface::handle(BPSError *can_struct) {
-    log_error("from bps");
+    //log_error("from bps");
     bms_error = can_struct->internal_communications_fault || can_struct-> low_cell_voltage_fault || can_struct->open_wiring_fault || can_struct->current_sensor_fault || can_struct->pack_voltage_sensor_fault || can_struct->thermistor_fault || can_struct->canbus_communications_fault || can_struct->high_voltage_isolation_fault || can_struct->charge_limit_enforcement_fault || can_struct->discharge_limit_enforcement_fault || can_struct->charger_safety_relay_fault || can_struct->internal_thermistor_fault || can_struct->internal_memory_fault;
 }
 
