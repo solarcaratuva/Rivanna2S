@@ -101,6 +101,7 @@ uint16_t readThrottle() {
 
 void read_inputs() {
     // log_error("read inputs");
+    vehicle_can_interface.lock.lock();
     flashHazards = hazardsSwitch.read();
     fprintf(stderr, "hazards %d\n", flashHazards ? 1 : 0);
     fflush(stderr);
@@ -114,6 +115,7 @@ void read_inputs() {
     fprintf(stderr, "regen %d\n", regenEnabled ? 1 : 0);
     fflush(stderr);
     brakeLightsEnabled = brakeLightsSwitch.read();
+    vehicle_can_interface.lock.unlock();
 
     // if(cruiseControlSwitch) {
     //     log_debug("cruiseControlSwitch pressed");
@@ -235,8 +237,10 @@ void motor_message_handler(){
         prevSpeedDecrease = speedDecrease;
       
         to_motor.cruise_control_en = cruiseControlEnabled;
+        vehicle_can_interface.lock.lock();
         fprintf(stderr, "cc_en %d\n", cruiseControlEnabled);
         fflush(stderr);
+        vehicle_can_interface.lock.unlock();
     
         if(cruiseControlEnabled and !prevCruiseControlEnabled){
             //double curr = (double)((RPM * 3.1415926535 * 16 * 60)/(63360));
@@ -254,8 +258,10 @@ void motor_message_handler(){
                 currentSpeed = to_motor.cruise_control_speed;
             }
         }
+        vehicle_can_interface.lock.lock();
         fprintf(stderr, "cc_speed %d\n", to_motor.cruise_control_speed);
         fflush(stderr);
+        vehicle_can_interface.lock.unlock();
         prevCruiseControlEnabled = cruiseControlEnabled;
         // log_error("cc speed: %d, cc en %d, pedal throttle: %d", currentSpeed, cruiseControlEnabled, throttleValue);
         to_motor.regen = regenValue;

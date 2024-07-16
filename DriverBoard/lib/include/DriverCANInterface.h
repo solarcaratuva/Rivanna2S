@@ -8,6 +8,7 @@
 
 class DriverCANInterface : public CANInterface {
   public:
+    Mutex lock;
     DriverCANInterface(PinName rd, PinName td, PinName standby_pin);
     void handle(BPSError *can_struct);
     void handle(MotorControllerPowerStatus *can_struct);
