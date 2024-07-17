@@ -130,6 +130,8 @@ void DriverCANInterface::message_handler() {
                 fflush(stderr);
                 fprintf(stderr, "pack_current %d\n", can_struct.pack_current);
                 fflush(stderr);
+                fprintf(stderr, "pack_soc %d\n", can_struct.pack_soc);
+                fflush(stderr);
                 lock.unlock();
             } else if(message.id == BPSCellTemperature_MESSAGE_ID) {
                 BPSCellTemperature can_struct;

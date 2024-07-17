@@ -202,6 +202,10 @@ void motor_message_handler(){
         regenActive = regenValue > 0;
 
         to_motor.throttle = throttleValue;
+        vehicle_can_interface.lock.lock();
+        fprintf(stderr, "throttle %d\n", (100*throttleValue) / 256);
+        fflush(stderr);
+        vehicle_can_interface.lock.unlock();
 
         bool cruiseControlRisingEdge = cruiseControlSwitch && !prevCruiseControlSwitch;
         bool cruiseControlFallingEdge = !cruiseControlSwitch && prevCruiseControlSwitch;
