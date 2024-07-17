@@ -117,6 +117,9 @@ void read_inputs() {
     brakeLightsEnabled = brakeLightsSwitch.read();
     vehicle_can_interface.lock.unlock();
 
+    //log_error("right: %d, hazards: %d", flashRSignal, flashHazards);
+    drl = !(flashRSignal && flashHazards);
+
     // if(cruiseControlSwitch) {
     //     log_debug("cruiseControlSwitch pressed");
     // }
@@ -148,7 +151,9 @@ void signalFlashHandler() {
         brake_lights = brakeLightsEnabled || regenActive;
         // log_error("wrote brake lights: %d", brake_lights);
 
-        if (flashHazards) {
+        if(flashRSignal && flashHazards) {
+            //Don't turn on any lights if in power saving mode
+        } else if (flashHazards) {
             bool leftTurnSignalState = leftTurnSignal;
             leftTurnSignal = !leftTurnSignalState;
             rightTurnSignal = !leftTurnSignalState;
