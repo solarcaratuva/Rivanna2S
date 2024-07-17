@@ -84,6 +84,8 @@ bool speedIncrease = false;
 bool speedDecrease = false;
 uint16_t currentSpeed = 0;
 
+uint16_t throttleLock = 0;
+
 uint16_t readThrottle() {
     float adjusted_throttle_input =
         ((throttle.read_voltage() - THROTTLE_LOW_VOLTAGE -
@@ -178,7 +180,11 @@ void motor_message_handler(){
         uint16_t regenValue;    
         uint16_t throttleValue;
 
-        if (regenEnabled) {
+
+        if (cruiseControlSwitch) {
+            throttleValue = throttleLock;
+        }
+        else if (regenEnabled) {
             // One pedal drive (tesla style)
             if (pedalValue <= 50) {
                 throttleValue = 0;
@@ -202,6 +208,9 @@ void motor_message_handler(){
         regenActive = regenValue > 0;
 
         to_motor.throttle = throttleValue;
+
+        throttleLock = throttleValue;
+
         vehicle_can_interface.lock.lock();
         fprintf(stderr, "throttle %d\n", (100*throttleValue) / 256);
         fflush(stderr);
@@ -245,7 +254,7 @@ void motor_message_handler(){
         prevSpeedIncrease = speedIncrease;
         prevSpeedDecrease = speedDecrease;
       
-        to_motor.cruise_control_en = cruiseControlEnabled;
+        to_motor.cruise_control_en = false;
         vehicle_can_interface.lock.lock();
         fprintf(stderr, "cc_en %d\n", cruiseControlEnabled);
         fflush(stderr);
