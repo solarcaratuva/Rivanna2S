@@ -207,10 +207,6 @@ void motor_message_handler(){
 
         regenActive = regenValue > 0;
 
-        to_motor.throttle = throttleValue;
-
-        throttleLock = throttleValue;
-
         vehicle_can_interface.lock.lock();
         fprintf(stderr, "throttle %d\n", (100*throttleValue) / 256);
         fflush(stderr);
@@ -271,11 +267,17 @@ void motor_message_handler(){
             } else if(increaseRisingEdge){
                 to_motor.cruise_control_speed = min(MAX_SPEED,  currentSpeed + UPDATE_SPEED);
                 currentSpeed = to_motor.cruise_control_speed;
+                throttleLock += 5;
             } else if(decreaseRisingEdge){
                 to_motor.cruise_control_speed = max(MIN_SPEED, currentSpeed - UPDATE_SPEED);
                 currentSpeed = to_motor.cruise_control_speed;
+                throttleLock -= 5;
             }
         }
+
+        to_motor.throttle = throttleValue;
+
+        throttleLock = throttleValue;
         vehicle_can_interface.lock.lock();
         fprintf(stderr, "cc_speed %d\n", to_motor.cruise_control_speed);
         fflush(stderr);
