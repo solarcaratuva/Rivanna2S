@@ -144,6 +144,8 @@ void MotorCANInterface::handle(ECUMotorCommands *can_struct) {
         log_error("target speed: %d, current speed: %d, sent to motor: %d", 0, 0, 0);
         motor_interface.sendThrottle(dampened_current);
     }
+
+    log_error("rpm: %d", rpm);
     
     motor_interface.sendRegen(can_struct->regen);
 
